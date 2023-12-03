@@ -201,9 +201,68 @@ This information refers to the execution time of each knn function (R, C++ and c
 We can verify that C++ implementation is much faster than the other two options, with a mean time of just 6.70 microseconds (which is significantly faster). To do so, we have set up the evaluation parameter into 1000 times, so we can estimate the execution time in a more reliable way.
 
 \pagebreak
-# Task 2: my_knn_c_euclidean
+
+**Disclaimer**
 
 From this point onwards, we have created and loaded our own package (*rcppAssignment.Rproj*) which contains all function needed. The C++ code from all function can be found inside rcppAssignment/src/my_knn_c_function.cpp
 
+# Task 2: my_knn_c_euclidean
+
+## C++ code
+
+In order to do this task we have created two different functions:
+
+-   **my_knn_c_euclidean**; it computes the euclidean distance between two numeric vectors.
+
+-   **my_knn_c_task2**; specific function to performance the knn algorithm for Task 2. 
+It calculates the euclidean distance between the observation X0 and each row of the X matrix using the my_knn_c_euclidean function. Finally, it returns the predicted class for X0.
+
+```{Rcpp}
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+double my_knn_c_euclidean(NumericVector X, NumericVector X0){
+  int ncols = X.size();
+  double distance = 0;
+  
+  for (int j=0; j<ncols; ++j){
+    double difference = X(j)-X0[j];
+    distance += difference * difference;
+  }
+  return sqrt(distance);
+}
+
+// [[Rcpp::export]]
+int my_knn_c_task2(NumericMatrix X, NumericVector X0, IntegerVector y){
+  int nrows = X.nrow();
+  int ncols = X.ncol();
+  
+  double difference = 0;
+  double closest_distance = my_knn_c_euclidean(X(0,_), X0);
+  double closest_output = y[1];
+  int closest_neighbor = 1;
+
+  for (int i=1; i<nrows; ++i){
+    double distance = my_knn_c_euclidean(X(i,_), X0);
+    if(distance < closest_distance){
+      closest_distance = distance;
+      closest_output = y[i];
+      closest_neighbor = i;
+    }
+  }
+  return closest_output;
+} 
+```
+
+## Code compilation
+
+```{r}
+print(my_knn_c_task2(X, X0, y))
+```
+
+Code works correctly, same result obtained as before.
+
+\pagebreak
 # Task 3: my_knn_c_minkowsky
 # Task 4
