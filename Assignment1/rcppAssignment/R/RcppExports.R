@@ -2,22 +2,22 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 my_knn_c_euclidean <- function(X, X0) {
-    .Call(`_mynewproject_my_knn_c_euclidean`, X, X0)
+    .Call(`_rcppAssignment_my_knn_c_euclidean`, X, X0)
 }
 
 my_knn_c_task2 <- function(X, X0, y) {
-    .Call(`_mynewproject_my_knn_c_task2`, X, X0, y)
+    .Call(`_rcppAssignment_my_knn_c_task2`, X, X0, y)
 }
 
 my_knn_c_minkowsky <- function(X, X0, p) {
-    .Call(`_mynewproject_my_knn_c_minkowsky`, X, X0, p)
+    .Call(`_rcppAssignment_my_knn_c_minkowsky`, X, X0, p)
 }
 
 my_knn_c_task3 <- function(X, X0, y, p) {
-    .Call(`_mynewproject_my_knn_c_task3`, X, X0, y, p)
+    .Call(`_rcppAssignment_my_knn_c_task3`, X, X0, y, p)
 }
 
 rcpp_hello_world <- function() {
-    .Call(`_mynewproject_rcpp_hello_world`)
+    .Call(`_rcppAssignment_rcpp_hello_world`)
 }
 

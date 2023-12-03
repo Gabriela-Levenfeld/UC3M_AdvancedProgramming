@@ -1,0 +1,28 @@
+{
+    "id": "480F1189",
+    "path": "~/rcppAssignment/src/my_knn_c_function.cpp",
+    "project_path": "src/my_knn_c_function.cpp",
+    "type": "cpp",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1701621613672.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "13,1",
+        "scrollLine": "0",
+        "docOutlineVisible": "1"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1701621750,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1701621750758,
+    "read_only": false,
+    "read_only_alternatives": []
+}

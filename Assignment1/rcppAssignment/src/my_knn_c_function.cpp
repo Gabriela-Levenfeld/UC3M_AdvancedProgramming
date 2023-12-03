@@ -1,5 +1,4 @@
 #include <Rcpp.h>
-
 using namespace Rcpp;
 
 // [[Rcpp::export]]
@@ -24,7 +23,7 @@ int my_knn_c_task2(NumericMatrix X, NumericVector X0, IntegerVector y){
   double closest_distance = my_knn_c_euclidean(X(0,_), X0);
   double closest_output = y[1];
   int closest_neighbor = 1;
-
+  
   for (int i=1; i<nrows; ++i){
     double distance = my_knn_c_euclidean(X(i,_), X0);
     if(distance < closest_distance){
@@ -34,7 +33,7 @@ int my_knn_c_task2(NumericMatrix X, NumericVector X0, IntegerVector y){
     }
   }
   return closest_output;
-} 
+}
 
 
 // [[Rcpp::export]]

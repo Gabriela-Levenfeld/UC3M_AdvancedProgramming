@@ -12,7 +12,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 // my_knn_c_euclidean
 double my_knn_c_euclidean(NumericVector X, NumericVector X0);
-RcppExport SEXP _mynewproject_my_knn_c_euclidean(SEXP XSEXP, SEXP X0SEXP) {
+RcppExport SEXP _rcppAssignment_my_knn_c_euclidean(SEXP XSEXP, SEXP X0SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -24,7 +24,7 @@ END_RCPP
 }
 // my_knn_c_task2
 int my_knn_c_task2(NumericMatrix X, NumericVector X0, IntegerVector y);
-RcppExport SEXP _mynewproject_my_knn_c_task2(SEXP XSEXP, SEXP X0SEXP, SEXP ySEXP) {
+RcppExport SEXP _rcppAssignment_my_knn_c_task2(SEXP XSEXP, SEXP X0SEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -37,7 +37,7 @@ END_RCPP
 }
 // my_knn_c_minkowsky
 double my_knn_c_minkowsky(NumericVector X, NumericVector X0, double p);
-RcppExport SEXP _mynewproject_my_knn_c_minkowsky(SEXP XSEXP, SEXP X0SEXP, SEXP pSEXP) {
+RcppExport SEXP _rcppAssignment_my_knn_c_minkowsky(SEXP XSEXP, SEXP X0SEXP, SEXP pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -50,7 +50,7 @@ END_RCPP
 }
 // my_knn_c_task3
 int my_knn_c_task3(NumericMatrix X, NumericVector X0, IntegerVector y, double p);
-RcppExport SEXP _mynewproject_my_knn_c_task3(SEXP XSEXP, SEXP X0SEXP, SEXP ySEXP, SEXP pSEXP) {
+RcppExport SEXP _rcppAssignment_my_knn_c_task3(SEXP XSEXP, SEXP X0SEXP, SEXP ySEXP, SEXP pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -64,7 +64,7 @@ END_RCPP
 }
 // rcpp_hello_world
 List rcpp_hello_world();
-RcppExport SEXP _mynewproject_rcpp_hello_world() {
+RcppExport SEXP _rcppAssignment_rcpp_hello_world() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -74,15 +74,15 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_mynewproject_my_knn_c_euclidean", (DL_FUNC) &_mynewproject_my_knn_c_euclidean, 2},
-    {"_mynewproject_my_knn_c_task2", (DL_FUNC) &_mynewproject_my_knn_c_task2, 3},
-    {"_mynewproject_my_knn_c_minkowsky", (DL_FUNC) &_mynewproject_my_knn_c_minkowsky, 3},
-    {"_mynewproject_my_knn_c_task3", (DL_FUNC) &_mynewproject_my_knn_c_task3, 4},
-    {"_mynewproject_rcpp_hello_world", (DL_FUNC) &_mynewproject_rcpp_hello_world, 0},
+    {"_rcppAssignment_my_knn_c_euclidean", (DL_FUNC) &_rcppAssignment_my_knn_c_euclidean, 2},
+    {"_rcppAssignment_my_knn_c_task2", (DL_FUNC) &_rcppAssignment_my_knn_c_task2, 3},
+    {"_rcppAssignment_my_knn_c_minkowsky", (DL_FUNC) &_rcppAssignment_my_knn_c_minkowsky, 3},
+    {"_rcppAssignment_my_knn_c_task3", (DL_FUNC) &_rcppAssignment_my_knn_c_task3, 4},
+    {"_rcppAssignment_rcpp_hello_world", (DL_FUNC) &_rcppAssignment_rcpp_hello_world, 0},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_mynewproject(DllInfo *dll) {
+RcppExport void R_init_rcppAssignment(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }
