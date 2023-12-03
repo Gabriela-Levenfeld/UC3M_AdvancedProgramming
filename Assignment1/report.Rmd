@@ -265,4 +265,98 @@ Code works correctly, same result obtained as before.
 
 \pagebreak
 # Task 3: my_knn_c_minkowsky
+
+## C++ code
+
+In this section, the procedure followed was similar as before, where two new function have been created:
+
+-   **my_knn_c_minkowsky**; it computes the minkowsky distance between two numeric vectors. This function considers all possible options for the parameter *p*, including positive, negative, and zero values.
+
+-   **my_knn_c_task3**; specific function to performance the knn algorithm for Task 3.
+
+```{Rcpp}
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+double my_knn_c_minkowsky(NumericVector X, NumericVector X0, double p){
+  int ncols = X.size();
+  double distance = 0;
+  double difference = 0;
+  int j;
+  if (p>0){
+    for(int j=0; j<ncols; ++j){
+      difference = abs(X[j] - X0[j]);
+      distance += pow(difference,p);
+    }
+    distance = pow(distance, 1/p);
+  } else if (p==0){
+    Rcpp::stop("p can't be 0");
+  } else{
+    for(j=0; j<ncols; ++j){
+      difference = abs(X[j] - X0[j]);
+      distance = std::max(distance, difference);
+    }
+  }
+  return distance;
+}
+
+
+// [[Rcpp::export]]
+int my_knn_c_task3(NumericMatrix X, NumericVector X0, IntegerVector y, double p){
+  
+  int nrows = X.nrow();
+  int ncols = X.ncol();
+  double difference = 0;
+  
+  double closest_distance = my_knn_c_minkowsky(X(0,_), X0, p);
+  double closest_output = y[1];
+  int closest_neighbor = 1;
+  for (int i=1; i<nrows; ++i){
+    double distance = my_knn_c_minkowsky(X(i,_), X0, p);
+    if(distance < closest_distance){
+      closest_distance = distance;
+      closest_output = y[i];
+      closest_neighbor = i;
+    }
+  }
+  return closest_output;
+}
+```
+
+## Code compilation
+
+To verify the code works properly, we are going to consider every possible case for parameter *p*.
+
+**p positive**
+
+```{r}
+print(my_knn_c_task3(X, X0, y, 2))
+
+my_knn_c_minkowsky(X[1,], X0, 2)
+my_knn_c_euclidean(X[1,], X0)
+```
+
+For this case, we settle up $p = 2$. Hence, we are computing the euclidean distance and the result is the same as before.
+
+We can even just calculate the Minkowsky distance for first observation of our dataset in order to compare distance with the Euclidean distance, which serves to verify both calculation are doing it the same.
+
+For simplicity, we just compute distance between X0 and the first observation of the dataset.
+
+**p negative**
+
+```{r}
+print(my_knn_c_task3(X, X0, y, -7))
+```
+
+In this case, negative p value is used to prove that knn algorithm still works.
+
+**p equal to zero**
+
+```{r}
+print(my_knn_c_task3(X, X0, y, 0))
+```
+
+Last possible situation is when $p=0$, where an error message is being raised.
+
 # Task 4
