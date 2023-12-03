@@ -1,0 +1,98 @@
+
+// [[Rcpp::export]]
+double calculate_accuracy(NumericVector predictions, NumericVector actual) {
+  // function to calculate the accuracy
+  double correct = sum(predictions == actual); // numero de predicciones correctas
+  double total = actual.size(); //tamaño del vector
+  double accuracy= correct/total;
+  return accuracy;
+}
+
+// [[Rcpp::export]]
+double my_knn_c_tuningp(NumericMatrix X, NumericVector X0, IntegerVector y, NumericVector possible_p){
+  // X data matrix with input attributes
+  // y response variable values of instances in X
+  // X0 vector of input attributes for prediction (just one instance)
+  // possible_p is a vector with possible values of p
+  
+  int n = X.nrow();
+  int m = X.ncol();
+  // Initialize variables for distance calculation
+  double distance = 0;
+  double difference = 0;
+  
+  // dividimos el set en training (2/3) y en validating (1/3)
+  // Calculate the number of observations for the training set
+  int num_train = floor(2.0 / 3.0 * n);
+  
+  // Create train-train and train-validation sets
+  int nrows = X.nrow();
+  int ncols = X.ncol();
+  
+  int train_size = std::floor((2.0 / 3.0) * nrows);
+  NumericMatrix X_train(train_size, X.ncol());
+  NumericMatrix X_val(nrows - train_size, X.ncol());
+  IntegerVector y_train(train_size);
+  IntegerVector y_val(nrows - train_size);
+  
+  // Randomly shuffle the indices
+  IntegerVector indices = seq_len(nrows);
+  std::random_shuffle(indices.begin(), indices.end());
+  
+  // Assign data to train and validation sets
+  for (int i = 0; i < nrows; ++i) {
+    if (i < train_size) {
+      X_train(i, _) = X(indices[i] - 1, _);
+      y_train[i] = y[indices[i] - 1];
+    } else {
+      X_val(i - train_size, _) = X(indices[i] - 1, _);
+      y_val[i - train_size] = y[indices[i] - 1];
+    }
+  }
+  
+  //entrenamos el training set
+  
+  double best_accuracy = 0.0;
+  double best_p = 0.0;
+  double psize=possible_p.size();
+  //hacemos knn con cada p  y calculamos la accuracy
+  for (int i=0; i<psize; ++i){
+    int p = possible_p[i];
+    NumericVector y_pred_val(num_train);
+    for (int j=0; j<X_train.nrow();++j)
+      y_pred_val[j]= my_knn_c_task3(X_val,X0,y_val,p);
+    
+    double accuracy = calculate_accuracy(y_pred_val, y_val);
+    if (accuracy > best_accuracy) {
+      best_accuracy = accuracy;
+      best_p = p;
+    }
+  }
+  
+  // Return the output value of the closest neighbor
+  return best_p;
+}
+
+
+// [[Rcpp::export]]
+int my_knn_c_tuningp(NumericMatrix X, NumericVector X0, IntegerVector y, NumericVector possible_p) {
+  int nrows = X.nrow();
+  int ncols = X.ncol();
+  
+  double closest_distance = my_knn_c_minkowsky(X(0, _), X0, possible_p[0]);
+  double closest_output = y[1];
+  int closest_neighbor = 1;
+  
+  for (int i = 1; i < nrows; ++i) {
+    for (int j = 0; j < possible_p.size(); ++j) {
+      double distance = my_knn_c_minkowsky(X(i, _), X0, possible_p[j]);
+      if (distance < closest_distance) {
+        closest_distance = distance;
+        closest_output = y[i];
+        closest_neighbor = i;
+      }
+    }
+  }
+  // Return the output value of the closest neighbor for the best p
+  return closest_output;
+}
