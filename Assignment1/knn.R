@@ -108,6 +108,9 @@ my_knn_c_minkowsky(X[1,], X0, -1)
 
 
 #### Task 4 ####
-#Luego meterlo en my_own_package, pero hago pruebas desde el sourceCpp
-library(Rcpp)
-sourceCpp('C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Escritorio/Advanced Programming/Task1/sketch__task1.cpp')
+possible_p <- c(5,2,7,6)
+possible_p <- c(2,7,5,6)
+
+possible_p <- c(0.5,0.2,6)
+possible_p <- c(0.5,6,0.2)
+print(my_knn_c_tuningp(X, X0, y, possible_p))
