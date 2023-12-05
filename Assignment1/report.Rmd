@@ -110,6 +110,8 @@ print(my_knn_R(X, X0, y))
 \pagebreak
 # Task 1: my_knn_c
 
+The file for this first task can be found over the named: *task1_my_knn_c.cpp*.
+
 ## Translate R code into C++
 
 ```{Rcpp}
@@ -177,6 +179,7 @@ library(Rcpp)
 sourceCpp('C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Escritorio/Advanced Programming/Task1/task1_my_knn_c.cpp')
 print(my_knn_c(X, X0, y))
 ```
+
 We can observed that same result as before is achieved.
 
 ## Verify Results against FNN/class knn
@@ -328,7 +331,7 @@ int my_knn_c_task3(NumericMatrix X, NumericVector X0, IntegerVector y, double p)
 
 To verify the code works properly, we are going to consider every possible case for parameter *p*.
 
-**p positive**
+1.    **p positive**
 
 ```{r}
 print(my_knn_c_task3(X, X0, y, 2))
@@ -343,7 +346,7 @@ We can even just calculate the Minkowsky distance for first observation of our d
 
 For simplicity, we just compute distance between X0 and the first observation of the dataset.
 
-**p negative**
+2.    **p negative**
 
 ```{r}
 print(my_knn_c_task3(X, X0, y, -7))
@@ -351,12 +354,89 @@ print(my_knn_c_task3(X, X0, y, -7))
 
 In this case, negative p value is used to prove that knn algorithm still works.
 
-**p equal to zero**
+3.    **p equal to zero**
 
-```{r}
-print(my_knn_c_task3(X, X0, y, 0))
+Last possible situation is when $p=0$, where an error message will be raised indicating that $p$ can not accept this value.
+
+\pagebreak
+# Task 4: my_knn_c_tuningp
+
+## C++ code
+
+-   **my_knn_c_tuningp**; Function which search the best value of $p$ over a set of possible options that are passing by the user and make the prediction for X0. It also return the accuracy of the model.
+
+```{Rcpp}
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+List my_knn_c_tuningp(NumericMatrix X, NumericVector X0, IntegerVector y, NumericVector possible_p){
+  int nrows = X.nrow();
+  int ncols = X.ncol();
+  double difference = 0;
+  
+  // Calculate the number of observations for the training set
+  int train_size = floor((2.0 / 3.0) * nrows);
+  
+  // Split dataset into training (2/3) and validation (1/3)
+  NumericMatrix X_train = X(Range(0, train_size-1), _);
+  NumericMatrix X_val = X(Range(train_size, nrows-1), _);
+  IntegerVector y_train = y[Range(0, train_size-1)];
+  IntegerVector y_val = y[Range(train_size, nrows-1)];
+  
+  double best_accuracy = 0.0;
+  double best_p = 0.0;
+  
+  // Iterate for all possible_p in order to find the best value
+  for (int i=0; i<possible_p.size(); ++i){
+    double closest_distance = my_knn_c_minkowsky(X(0,_), X_val(0,_), possible_p[i]);
+    double closest_output = y[1];
+    int closest_neighbor = 1;
+    double p  = possible_p[i];
+    int correct_predictions = 0;
+    for (int j = 0; j < nrows - train_size; ++j) {
+      double closest_distance = my_knn_c_minkowsky(X_train(0, _), X_val(j, _), p);
+      int closest_output = y_train[0];
+      for (int k = 1; k < train_size; ++k) {
+        double distance = my_knn_c_minkowsky(X_train(k, _), X_val(j, _), p);
+        if (distance < closest_distance) {
+          closest_distance = distance;
+          closest_output = y_train[k];
+          closest_neighbor = k;
+        }
+      }
+      // Check if prediction is correct
+      if (closest_output == y_val[j]) {
+        correct_predictions++;
+      }
+    }
+    
+    // Choose the best_p
+    double accuracy = static_cast<double>(correct_predictions)/(nrows-train_size);
+    if (accuracy > best_accuracy) {
+      best_accuracy = accuracy;
+      best_p = p;
+    }
+  }
+  
+  /* Use the best_p to make the final prediction for X0, we reused the code we
+  have donde for previous task */
+  int final_output = my_knn_c_task3(X, X0, y, best_p);
+  
+  // Return: final prediction, optimal value for p and the accuracy
+  List final_params;
+  final_params["best_p"] = best_p;
+  final_params["final_output"] = final_output;
+  final_params["best_accuracy"] = best_accuracy;
+  return final_params;
+}
 ```
 
-Last possible situation is when $p=0$, where an error message is being raised.
+## Code compilation
 
-# Task 4
+```{r}
+possible_p <- c(0.5,6,0.2)
+print(my_knn_c_tuningp(X, X0, y, possible_p))
+```
+
+As an insight for this last task, we can observed that for integer values which are positive the accuracy for the model is always the same. As a consequence, *my_knn_c_tuningp* function will always return the first value of *possible_p* vector. Which makes sense because all values produce the same accuracy so there is no option better than the others.

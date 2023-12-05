@@ -1,7 +1,7 @@
 [
     {
         "file": "C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Documentos/rcppAssignment/src/my_knn_c_function.cpp",
-        "file_last_write": 1701621750.0,
+        "file_last_write": 1701776466.0,
         "definitions": [
             {
                 "usr": "c:@F@my_knn_c_euclidean#$@N@Rcpp@S@Vector>#VI14#@N@Rcpp@ST>1#T@PreserveStorage#S0_#",
@@ -41,6 +41,16 @@
                 "file": "C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Documentos/rcppAssignment/src/my_knn_c_function.cpp",
                 "line": 64,
                 "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@my_knn_c_tuningp#$@N@Rcpp@S@Matrix>#VI14#@N@Rcpp@ST>1#T@PreserveStorage#$@N@Rcpp@S@Vector>#VI14#@N@Rcpp@ST>1#T@PreserveStorage#$@N@Rcpp@S@Vector>#VI13#@N@Rcpp@ST>1#T@PreserveStorage#S1_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "my_knn_c_tuningp(Rcpp::NumericMatrix, Rcpp::NumericVector, Rcpp::IntegerVector, Rcpp::NumericVector)",
+                "file": "C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Documentos/rcppAssignment/src/my_knn_c_function.cpp",
+                "line": 86,
+                "column": 6,
                 "hidden": false
             }
         ],

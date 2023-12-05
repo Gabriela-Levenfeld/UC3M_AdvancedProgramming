@@ -102,7 +102,7 @@ List my_knn_c_tuningp(NumericMatrix X, NumericVector X0, IntegerVector y, Numeri
   
   // Iterate for all possible_p in order to find the best value
   for (int i=0; i<possible_p.size(); ++i){
-    double closest_distance = my_knn_c_minkowsky(X(0,_), X0, possible_p[i]);
+    double closest_distance = my_knn_c_minkowsky(X(0,_), X_val(0,_), possible_p[i]);
     double closest_output = y[1];
     int closest_neighbor = 1;
     double p  = possible_p[i];
