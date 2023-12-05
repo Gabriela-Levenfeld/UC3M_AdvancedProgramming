@@ -112,7 +112,6 @@ possible_p <- c(5,2,7,6)
 possible_p <- c(2,7,5,6)
 
 possible_p <- c(0.5,0.2,6)
-possible_p <- c(0.5,6,0.2)
+possible_p <- c(0.5,6,-1)
 
-sourceCpp('C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Escritorio/Advanced Programming/Task1/sketch_task1.cpp')
 print(my_knn_c_tuningp(X, X0, y, possible_p))

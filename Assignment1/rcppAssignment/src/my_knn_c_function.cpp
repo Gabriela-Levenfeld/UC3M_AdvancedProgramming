@@ -94,22 +94,11 @@ List my_knn_c_tuningp(NumericMatrix X, NumericVector X0, IntegerVector y, Numeri
   
   // Iterate for all possible_p in order to find the best value
   for (int i=0; i<possible_p.size(); ++i){
-    double closest_distance = my_knn_c_minkowsky(X(0,_), X_val(0,_), possible_p[i]);
-    double closest_output = y[1];
-    int closest_neighbor = 1;
     double p  = possible_p[i];
     int correct_predictions = 0;
     for (int j = 0; j < nrows - train_size; ++j) {
-      double closest_distance = my_knn_c_minkowsky(X_train, X_val(j, _), p);
-      int closest_output = y_train[0];
-      for (int k = 1; k < train_size; ++k) {
-        double distance = my_knn_c_minkowsky(X_train(k, _), X_val(j, _), p);
-        if (distance < closest_distance) {
-          closest_distance = distance;
-          closest_output = y_train[k];
-          closest_neighbor = k;
-        }
-      }
+      // Reused code for task3
+      int closest_output = my_knn_c_task3(X_train, X_val(j, _), y_train, p);
       // Check if prediction is correct
       if (closest_output == y_val[j]) {
         correct_predictions++;

@@ -112,5 +112,6 @@ possible_p <- c(5,2,7,6)
 possible_p <- c(2,7,5,6)
 
 possible_p <- c(0.5,0.2,6)
-possible_p <- c(0.5,6,0.2)
+possible_p <- c(0.5,6,-1)
+
 print(my_knn_c_tuningp(X, X0, y, possible_p))

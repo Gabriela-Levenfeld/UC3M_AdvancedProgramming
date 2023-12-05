@@ -1,0 +1,420 @@
+---
+title: "Advanced Programming"
+author: "Errasti Domínguez, Nuria and Levenfeld Sabau, Gabriela"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    latex_engine: xelatex
+    toc: yes
+    toc_depth: 6
+    keep_tex: yes
+  geometry: left=3cm,right=3cm,top=2cm,bottom=2cm
+  mathjax: local
+  self_contained: no
+  word_document:
+    toc: yes
+    toc_depth: '6'
+subtitle: RCPP ASSIGNMENT, PROGRAMMING NEAREST NEIGHBOUR IN C++
+font-family: Helvetica
+---
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+\pagebreak
+
+# Preparing data
+
+First of all, we must prepared the data we are going to work with.
+
+```{r}
+set.seed(123) # for reproducibility 
+
+# X contains the inputs as a matrix of real numbers
+data("iris")
+iris_shuffled <- iris[sample(nrow(iris)), ]
+
+# X contains the input attributes (excluding the class)
+X <- iris_shuffled[,-5]
+# y contains the response variable (named medv, a numeric value)
+y <- iris_shuffled[,5]
+
+# From dataframe to matrix
+X <- as.matrix(X)
+# From factor to integer
+y <- as.integer(y)
+
+# This is the point we want to predict
+X0 <- c(5.80, 3.00, 4.35, 1.30)
+```
+
+\pagebreak
+# Preliminare: my_knn_R
+
+## R code
+
+Here it is attached the knn function programmed in R language by the professor for the assignment that we will use during the task.
+
+```{r}
+my_knn_R = function(X, X0, y){
+  # X data matrix with input attributes
+  # y response variable values of instances in X  
+  # X0 vector of input attributes for prediction (just one instance)
+  
+  nrows = nrow(X)
+  ncols = ncol(X)
+  
+  distance = 0
+  for(j in 1:ncols){
+    difference = X[1,j]-X0[j]
+    distance = distance + difference * difference
+  }
+  
+  distance = sqrt(distance)
+
+  closest_distance = distance
+  closest_output = y[1]
+  closest_neighbor = 1
+  
+  for(i in 2:nrows){
+    
+    distance = 0
+    for(j in 1:ncols){
+      difference = X[i,j]-X0[j]
+      distance = distance + difference * difference
+    }
+    
+    distance = sqrt(distance)
+    
+    if(distance < closest_distance){
+      closest_distance = distance
+      closest_output = y[i]
+      closest_neighbor = i
+    }
+  }
+  closest_output
+}  
+```
+
+## Compile R code
+
+```{r}
+print(my_knn_R(X, X0, y))
+```
+
+\pagebreak
+# Task 1: my_knn_c
+
+The file for this first task can be found over the named: *task1_my_knn_c.cpp*.
+
+## Translate R code into C++
+
+```{Rcpp}
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+int my_knn_c(NumericMatrix X, NumericVector X0, IntegerVector y){
+  /*
+   - X data matrix with input attributes. Each row represent an observation and columns 
+  are refer to the different varibles (features) we are having into account.
+   - y response variable values of instances in X. Vector that contain the response
+  varibles (3 possible values: setosa, versicolor or virginica)
+  - X0 vector of input attributes for prediction (just one instance)
+  */
+  
+  int nrows = X.nrow(); //number of observations
+  int ncols = X.ncol(); //features or attributes that are being considered
+  
+  // Initialize variables for distance calculation
+  double distance = 0;
+  double difference = 0;
+  int j;
+
+  /* Compute Euclidean distance between the input instance X0 and the first row
+  (observation) of X in order to initialize the parameter distance. */
+  for (j=0; j<ncols; ++j){
+    difference = X(1,j)-X0[j];
+    distance = distance + difference * difference;
+  }
+  distance = sqrt(distance);
+  
+  /* Next step is to compute every distance between X0 and the observations of matrix X
+  and store the lowest value in the closest_distance parameter. */
+  double closest_distance = distance;
+  double closest_output = y[1];
+  int closest_neighbor = 1;
+  int i;
+  
+  for (i=1; i<nrows; ++i){
+    distance = 0;
+    for (j=0; j<ncols; ++j){
+      difference = X(i,j)-X0[j];
+      distance = distance + difference * difference;
+    }
+    
+    distance = sqrt(distance);
+    
+      /* Finally, we will return the output value of the closest neighbor based on
+    the shortest distance. */
+      if(distance < closest_distance){
+        closest_distance = distance;
+        closest_output = y[i];
+        closest_neighbor = i;
+      }
+  }
+  return closest_output;
+}
+```
+
+## Compile C++ code with sourceCpp
+
+```{r echo=TRUE, warning=FALSE, message=FALSE}
+library(Rcpp)
+sourceCpp('C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Escritorio/Advanced Programming/Task1/task1_my_knn_c.cpp')
+print(my_knn_c(X, X0, y))
+```
+
+We can observed that same result as before is achieved.
+
+## Verify Results against FNN/class knn
+
+```{r echo=TRUE, warning=FALSE, message=FALSE}
+# Using class:knn to predict point X0
+library(class)
+print(class::knn(X, X0, y, k=1))
+```
+
+As we can observed the result is the same as with R code and C++ code, 2.
+
+## Use microbenchmark to compare performance
+
+```{r echo=TRUE, warning=FALSE, message=FALSE}
+library(microbenchmark)
+microbenchmark(my_knn_c(X, X0, y), my_knn_R(X, X0, y), knn(X, X0, y, k=1),
+               times = 1000)
+```
+
+This information refers to the execution time of each knn function (R, C++ and class) express in microseconds.
+We can verify that C++ implementation is much faster than the other two options, with a mean time of just 6.70 microseconds (which is significantly faster). To do so, we have set up the evaluation parameter into 1000 times, so we can estimate the execution time in a more reliable way.
+
+\pagebreak
+
+**Disclaimer**
+
+From this point onwards, we have created and loaded our own package (*rcppAssignment.Rproj*) which contains all function needed. The C++ code from all function can be found inside rcppAssignment/src/my_knn_c_function.cpp
+
+# Task 2: my_knn_c_euclidean
+
+## C++ code
+
+In order to do this task we have created two different functions:
+
+-   **my_knn_c_euclidean**; it computes the euclidean distance between two numeric vectors.
+
+-   **my_knn_c_task2**; specific function to performance the knn algorithm for Task 2. 
+It calculates the euclidean distance between the observation X0 and each row of the X matrix using the my_knn_c_euclidean function. Finally, it returns the predicted class for X0.
+
+```{Rcpp}
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+double my_knn_c_euclidean(NumericVector X, NumericVector X0){
+  int ncols = X.size();
+  double distance = 0;
+  
+  for (int j=0; j<ncols; ++j){
+    double difference = X(j)-X0[j];
+    distance += difference * difference;
+  }
+  return sqrt(distance);
+}
+
+// [[Rcpp::export]]
+int my_knn_c_task2(NumericMatrix X, NumericVector X0, IntegerVector y){
+  int nrows = X.nrow();
+  double closest_distance = my_knn_c_euclidean(X(0,_), X0);
+  double closest_output = y[1];
+  int closest_neighbor = 1;
+  
+  for (int i=1; i<nrows; ++i){
+    double distance = my_knn_c_euclidean(X(i,_), X0);
+    if(distance < closest_distance){
+      closest_distance = distance;
+      closest_output = y[i];
+      closest_neighbor = i;
+    }
+  }
+  return closest_output;
+}
+```
+
+## Code compilation
+
+```{r}
+print(my_knn_c_task2(X, X0, y))
+```
+
+Code works correctly, same result obtained as before.
+
+\pagebreak
+# Task 3: my_knn_c_minkowsky
+
+## C++ code
+
+In this section, the procedure followed was similar as before, where two new function have been created:
+
+-   **my_knn_c_minkowsky**; it computes the minkowsky distance between two numeric vectors. This function considers all possible options for the parameter *p*, including positive, negative, and zero values.
+
+-   **my_knn_c_task3**; specific function to performance the knn algorithm for Task 3.
+
+```{Rcpp}
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+double my_knn_c_minkowsky(NumericVector X, NumericVector X0, double p){
+  int ncols = X.size();
+  double distance = 0;
+  double difference = 0;
+  int j;
+  if (p>0){
+    for(int j=0; j<ncols; ++j){
+      difference = abs(X[j] - X0[j]);
+      distance += pow(difference,p);
+    }
+    distance = pow(distance, 1/p);
+  } else if (p==0){
+    Rcpp::stop("p can't be 0");
+  } else{
+    for(j=0; j<ncols; ++j){
+      difference = abs(X[j] - X0[j]);
+      distance = std::max(distance, difference);
+    }
+  }
+  return distance;
+}
+
+
+// [[Rcpp::export]]
+int my_knn_c_task3(NumericMatrix X, NumericVector X0, IntegerVector y, double p){
+  int nrows = X.nrow();
+  double closest_distance = my_knn_c_minkowsky(X(0,_), X0, p);
+  double closest_output = y[1];
+  int closest_neighbor = 1;
+  
+  for (int i=1; i<nrows; ++i){
+    double distance = my_knn_c_minkowsky(X(i,_), X0, p);
+    if(distance < closest_distance){
+      closest_distance = distance;
+      closest_output = y[i];
+      closest_neighbor = i;
+    }
+  }
+  return closest_output;
+}
+```
+
+## Code compilation
+
+To verify the code works properly, we are going to consider every possible case for parameter *p*.
+
+1.    **p positive**
+
+```{r}
+print(my_knn_c_task3(X, X0, y, 2))
+
+my_knn_c_minkowsky(X[1,], X0, 2)
+my_knn_c_euclidean(X[1,], X0)
+```
+
+For this case, we settle up $p = 2$. Hence, we are computing the euclidean distance and the result is the same as our previous computation.
+
+To further validate our code and ensure consistency between the different distance metrics we are working with, we can specifically compute the Minkowsky distance for the first observation in our dataset. And compare it with the Euclidean distance which will lead us into the same results.
+
+For simplicity, we just focus on computing distances between X0 and the first observation in the dataset.
+
+2.    **p negative**
+
+```{r}
+print(my_knn_c_task3(X, X0, y, -7))
+```
+
+In this case, negative $p$ value is used to prove that knn algorithm still works.
+
+3.    **p equal to zero**
+
+Last possible situation is when $p=0$, where an error message will be raised indicating that $p$ can not accept this value.
+
+\pagebreak
+# Task 4: my_knn_c_tuningp
+
+## C++ code
+
+-   **my_knn_c_tuningp**; Function which search the best value of $p$ over a set of possible options that are passing by the user and make the prediction for X0. It also return the accuracy of the model.
+
+```{Rcpp}
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+List my_knn_c_tuningp(NumericMatrix X, NumericVector X0, IntegerVector y, NumericVector possible_p){
+  
+  int nrows = X.nrow();
+  // Calculate the number of observations for the training set
+  int train_size = floor((2.0 / 3.0) * nrows);
+  
+  // Split dataset into training (2/3) and validation (1/3)
+  NumericMatrix X_train = X(Range(0, train_size-1), _);
+  NumericMatrix X_val = X(Range(train_size, nrows-1), _);
+  IntegerVector y_train = y[Range(0, train_size-1)];
+  IntegerVector y_val = y[Range(train_size, nrows-1)];
+  
+  double best_accuracy = 0.0;
+  double best_p = 0.0;
+  
+  // Iterate for all possible_p in order to find the best value
+  for (int i=0; i<possible_p.size(); ++i){
+    double p  = possible_p[i];
+    int correct_predictions = 0;
+    for (int j = 0; j < nrows - train_size; ++j) {
+      // Reused code for task3
+      int closest_output = my_knn_c_task3(X_train, X_val(j, _), y_train, p);
+      // Check if prediction is correct
+      if (closest_output == y_val[j]) {
+        correct_predictions++;
+      }
+    }
+    
+    // Choose the best_p
+    double accuracy = static_cast<double>(correct_predictions)/(nrows-train_size);
+    if (accuracy > best_accuracy) {
+      best_accuracy = accuracy;
+      best_p = p;
+    }
+  }
+
+  // Return: final prediction, optimal value for p and the accuracy
+  List final_params;
+  final_params["best_p"] = best_p;
+  // Use the best_p to make the final prediction for X0
+  final_params["final_output"] = my_knn_c_task3(X, X0, y, best_p);
+  final_params["best_accuracy"] = best_accuracy;
+  return final_params;
+}
+```
+
+## Code compilation
+
+```{r}
+possible_p <- c(0.5,6,0.2)
+print(my_knn_c_tuningp(X, X0, y, possible_p))
+```
+
+As an insight for this last task, we can observed that for integer values which are positive the accuracy for the model is always the same. As a consequence, *my_knn_c_tuningp* function will always return the first value of *possible_p* vector. Which makes sense because all values produce the same accuracy so there is no option better than the others.
