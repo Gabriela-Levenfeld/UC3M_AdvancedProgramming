@@ -17,9 +17,6 @@ double my_knn_c_euclidean(NumericVector X, NumericVector X0){
 // [[Rcpp::export]]
 int my_knn_c_task2(NumericMatrix X, NumericVector X0, IntegerVector y){
   int nrows = X.nrow();
-  int ncols = X.ncol();
-  
-  double difference = 0;
   double closest_distance = my_knn_c_euclidean(X(0,_), X0);
   double closest_output = y[1];
   int closest_neighbor = 1;
@@ -62,14 +59,11 @@ double my_knn_c_minkowsky(NumericVector X, NumericVector X0, double p){
 
 // [[Rcpp::export]]
 int my_knn_c_task3(NumericMatrix X, NumericVector X0, IntegerVector y, double p){
-  
   int nrows = X.nrow();
-  int ncols = X.ncol();
-  double difference = 0;
-  
   double closest_distance = my_knn_c_minkowsky(X(0,_), X0, p);
   double closest_output = y[1];
   int closest_neighbor = 1;
+  
   for (int i=1; i<nrows; ++i){
     double distance = my_knn_c_minkowsky(X(i,_), X0, p);
     if(distance < closest_distance){
@@ -84,10 +78,8 @@ int my_knn_c_task3(NumericMatrix X, NumericVector X0, IntegerVector y, double p)
 
 // [[Rcpp::export]]
 List my_knn_c_tuningp(NumericMatrix X, NumericVector X0, IntegerVector y, NumericVector possible_p){
-  int nrows = X.nrow();
-  int ncols = X.ncol();
-  double difference = 0;
   
+  int nrows = X.nrow();
   // Calculate the number of observations for the training set
   int train_size = floor((2.0 / 3.0) * nrows);
   
@@ -108,7 +100,7 @@ List my_knn_c_tuningp(NumericMatrix X, NumericVector X0, IntegerVector y, Numeri
     double p  = possible_p[i];
     int correct_predictions = 0;
     for (int j = 0; j < nrows - train_size; ++j) {
-      double closest_distance = my_knn_c_minkowsky(X_train(0, _), X_val(j, _), p);
+      double closest_distance = my_knn_c_minkowsky(X_train, X_val(j, _), p);
       int closest_output = y_train[0];
       for (int k = 1; k < train_size; ++k) {
         double distance = my_knn_c_minkowsky(X_train(k, _), X_val(j, _), p);
@@ -132,14 +124,11 @@ List my_knn_c_tuningp(NumericMatrix X, NumericVector X0, IntegerVector y, Numeri
     }
   }
   
-  /* Use the best_p to make the final prediction for X0, we reused the code we
-  have donde for previous task */
-  int final_output = my_knn_c_task3(X, X0, y, best_p);
-  
   // Return: final prediction, optimal value for p and the accuracy
   List final_params;
   final_params["best_p"] = best_p;
-  final_params["final_output"] = final_output;
+  // Use the best_p to make the final prediction for X0
+  final_params["final_output"] = my_knn_c_task3(X, X0, y, best_p);
   final_params["best_accuracy"] = best_accuracy;
   return final_params;
 }
