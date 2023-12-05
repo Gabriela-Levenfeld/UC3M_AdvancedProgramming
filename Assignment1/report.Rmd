@@ -239,13 +239,10 @@ double my_knn_c_euclidean(NumericVector X, NumericVector X0){
 // [[Rcpp::export]]
 int my_knn_c_task2(NumericMatrix X, NumericVector X0, IntegerVector y){
   int nrows = X.nrow();
-  int ncols = X.ncol();
-  
-  double difference = 0;
   double closest_distance = my_knn_c_euclidean(X(0,_), X0);
   double closest_output = y[1];
   int closest_neighbor = 1;
-
+  
   for (int i=1; i<nrows; ++i){
     double distance = my_knn_c_euclidean(X(i,_), X0);
     if(distance < closest_distance){
@@ -255,7 +252,7 @@ int my_knn_c_task2(NumericMatrix X, NumericVector X0, IntegerVector y){
     }
   }
   return closest_output;
-} 
+}
 ```
 
 ## Code compilation
@@ -307,14 +304,11 @@ double my_knn_c_minkowsky(NumericVector X, NumericVector X0, double p){
 
 // [[Rcpp::export]]
 int my_knn_c_task3(NumericMatrix X, NumericVector X0, IntegerVector y, double p){
-  
   int nrows = X.nrow();
-  int ncols = X.ncol();
-  double difference = 0;
-  
   double closest_distance = my_knn_c_minkowsky(X(0,_), X0, p);
   double closest_output = y[1];
   int closest_neighbor = 1;
+  
   for (int i=1; i<nrows; ++i){
     double distance = my_knn_c_minkowsky(X(i,_), X0, p);
     if(distance < closest_distance){
@@ -340,11 +334,11 @@ my_knn_c_minkowsky(X[1,], X0, 2)
 my_knn_c_euclidean(X[1,], X0)
 ```
 
-For this case, we settle up $p = 2$. Hence, we are computing the euclidean distance and the result is the same as before.
+For this case, we settle up $p = 2$. Hence, we are computing the euclidean distance and the result is the same as our previous computation.
 
-We can even just calculate the Minkowsky distance for first observation of our dataset in order to compare distance with the Euclidean distance, which serves to verify both calculation are doing it the same.
+To further validate our code and ensure consistency between the different distance metrics we are working with, we can specifically compute the Minkowsky distance for the first observation in our dataset. And compare it with the Euclidean distance which will lead us into the same results.
 
-For simplicity, we just compute distance between X0 and the first observation of the dataset.
+For simplicity, we just focus on computing distances between X0 and the first observation in the dataset.
 
 2.    **p negative**
 
@@ -352,7 +346,7 @@ For simplicity, we just compute distance between X0 and the first observation of
 print(my_knn_c_task3(X, X0, y, -7))
 ```
 
-In this case, negative p value is used to prove that knn algorithm still works.
+In this case, negative $p$ value is used to prove that knn algorithm still works.
 
 3.    **p equal to zero**
 
@@ -363,7 +357,7 @@ Last possible situation is when $p=0$, where an error message will be raised ind
 
 ## C++ code
 
--   **my_knn_c_tuningp**; Function which search the best value of $p$ over a set of possible options that are passing by the user and make the prediction for X0. It also return the accuracy of the model.
+-   **my_knn_c_tuningp**; Function which performance a search over a set of possible $p$ values provided by the user. And, after, with the value selected makes the prediction for X0. It also return the corresponding accuracy of the model.
 
 ```{Rcpp}
 #include <Rcpp.h>
@@ -371,10 +365,8 @@ using namespace Rcpp;
 
 // [[Rcpp::export]]
 List my_knn_c_tuningp(NumericMatrix X, NumericVector X0, IntegerVector y, NumericVector possible_p){
-  int nrows = X.nrow();
-  int ncols = X.ncol();
-  double difference = 0;
   
+  int nrows = X.nrow();
   // Calculate the number of observations for the training set
   int train_size = floor((2.0 / 3.0) * nrows);
   
@@ -389,22 +381,11 @@ List my_knn_c_tuningp(NumericMatrix X, NumericVector X0, IntegerVector y, Numeri
   
   // Iterate for all possible_p in order to find the best value
   for (int i=0; i<possible_p.size(); ++i){
-    double closest_distance = my_knn_c_minkowsky(X(0,_), X_val(0,_), possible_p[i]);
-    double closest_output = y[1];
-    int closest_neighbor = 1;
     double p  = possible_p[i];
     int correct_predictions = 0;
     for (int j = 0; j < nrows - train_size; ++j) {
-      double closest_distance = my_knn_c_minkowsky(X_train(0, _), X_val(j, _), p);
-      int closest_output = y_train[0];
-      for (int k = 1; k < train_size; ++k) {
-        double distance = my_knn_c_minkowsky(X_train(k, _), X_val(j, _), p);
-        if (distance < closest_distance) {
-          closest_distance = distance;
-          closest_output = y_train[k];
-          closest_neighbor = k;
-        }
-      }
+      // Reused code for task3
+      int closest_output = my_knn_c_task3(X_train, X_val(j, _), y_train, p);
       // Check if prediction is correct
       if (closest_output == y_val[j]) {
         correct_predictions++;
@@ -418,15 +399,12 @@ List my_knn_c_tuningp(NumericMatrix X, NumericVector X0, IntegerVector y, Numeri
       best_p = p;
     }
   }
-  
-  /* Use the best_p to make the final prediction for X0, we reused the code we
-  have donde for previous task */
-  int final_output = my_knn_c_task3(X, X0, y, best_p);
-  
+
   // Return: final prediction, optimal value for p and the accuracy
   List final_params;
   final_params["best_p"] = best_p;
-  final_params["final_output"] = final_output;
+  // Use the best_p to make the final prediction for X0
+  final_params["final_output"] = my_knn_c_task3(X, X0, y, best_p);
   final_params["best_accuracy"] = best_accuracy;
   return final_params;
 }
@@ -434,9 +412,22 @@ List my_knn_c_tuningp(NumericMatrix X, NumericVector X0, IntegerVector y, Numeri
 
 ## Code compilation
 
+For showing functionality of **my_knn_c_tuningp** function, two demos are execute.
+
+-   **Demo 1**:
+
 ```{r}
-possible_p <- c(0.5,6,0.2)
+possible_p <- c(0.5,6,-1)
 print(my_knn_c_tuningp(X, X0, y, possible_p))
 ```
 
-As an insight for this last task, we can observed that for integer values which are positive the accuracy for the model is always the same. As a consequence, *my_knn_c_tuningp* function will always return the first value of *possible_p* vector. Which makes sense because all values produce the same accuracy so there is no option better than the others.
+-   **Demo 2**:
+
+```{r}
+possible_p <- c(5,2,7,6)
+print(my_knn_c_tuningp(X, X0, y, possible_p))
+```
+
+In both demos, the model reaches an accuracy of $96$% and the selected prediction class is the second one. However, the best p value is different.
+
+For this exercise it is worth mentioning that for positive values greater than $1$, the model obtains always the same accuracy ($96$%) and, as a consequence, it keeps the value that occupies the first position in the vector (possible_p) created by the user.
