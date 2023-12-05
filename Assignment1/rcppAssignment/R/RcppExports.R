@@ -17,6 +17,10 @@ my_knn_c_task3 <- function(X, X0, y, p) {
     .Call(`_rcppAssignment_my_knn_c_task3`, X, X0, y, p)
 }
 
+my_knn_c_tuningp <- function(X, X0, y, possible_p) {
+    .Call(`_rcppAssignment_my_knn_c_tuningp`, X, X0, y, possible_p)
+}
+
 rcpp_hello_world <- function() {
     .Call(`_rcppAssignment_rcpp_hello_world`)
 }

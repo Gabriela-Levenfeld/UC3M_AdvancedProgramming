@@ -62,6 +62,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// my_knn_c_tuningp
+List my_knn_c_tuningp(NumericMatrix X, NumericVector X0, IntegerVector y, NumericVector possible_p);
+RcppExport SEXP _rcppAssignment_my_knn_c_tuningp(SEXP XSEXP, SEXP X0SEXP, SEXP ySEXP, SEXP possible_pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type X0(X0SEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type y(ySEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type possible_p(possible_pSEXP);
+    rcpp_result_gen = Rcpp::wrap(my_knn_c_tuningp(X, X0, y, possible_p));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rcpp_hello_world
 List rcpp_hello_world();
 RcppExport SEXP _rcppAssignment_rcpp_hello_world() {
@@ -78,6 +92,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rcppAssignment_my_knn_c_task2", (DL_FUNC) &_rcppAssignment_my_knn_c_task2, 3},
     {"_rcppAssignment_my_knn_c_minkowsky", (DL_FUNC) &_rcppAssignment_my_knn_c_minkowsky, 3},
     {"_rcppAssignment_my_knn_c_task3", (DL_FUNC) &_rcppAssignment_my_knn_c_task3, 4},
+    {"_rcppAssignment_my_knn_c_tuningp", (DL_FUNC) &_rcppAssignment_my_knn_c_tuningp, 4},
     {"_rcppAssignment_rcpp_hello_world", (DL_FUNC) &_rcppAssignment_rcpp_hello_world, 0},
     {NULL, NULL, 0}
 };

@@ -1,14 +1,61 @@
 [
     {
-        "file": "C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Documentos/mynewproject/src/rcpp_hello_world.cpp",
-        "file_last_write": 1699620110.0,
+        "file": "C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Documentos/rcppAssignment/src/my_knn_c_function.cpp",
+        "file_last_write": 1701621750.0,
+        "definitions": [
+            {
+                "usr": "c:@F@my_knn_c_euclidean#$@N@Rcpp@S@Vector>#VI14#@N@Rcpp@ST>1#T@PreserveStorage#S0_#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "my_knn_c_euclidean(Rcpp::NumericVector, Rcpp::NumericVector)",
+                "file": "C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Documentos/rcppAssignment/src/my_knn_c_function.cpp",
+                "line": 5,
+                "column": 8,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@my_knn_c_task2#$@N@Rcpp@S@Matrix>#VI14#@N@Rcpp@ST>1#T@PreserveStorage#$@N@Rcpp@S@Vector>#VI14#@N@Rcpp@ST>1#T@PreserveStorage#$@N@Rcpp@S@Vector>#VI13#@N@Rcpp@ST>1#T@PreserveStorage#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "my_knn_c_task2(Rcpp::NumericMatrix, Rcpp::NumericVector, Rcpp::IntegerVector)",
+                "file": "C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Documentos/rcppAssignment/src/my_knn_c_function.cpp",
+                "line": 18,
+                "column": 5,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@my_knn_c_minkowsky#$@N@Rcpp@S@Vector>#VI14#@N@Rcpp@ST>1#T@PreserveStorage#S0_#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "my_knn_c_minkowsky(Rcpp::NumericVector, Rcpp::NumericVector, double)",
+                "file": "C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Documentos/rcppAssignment/src/my_knn_c_function.cpp",
+                "line": 40,
+                "column": 8,
+                "hidden": false
+            },
+            {
+                "usr": "c:@F@my_knn_c_task3#$@N@Rcpp@S@Matrix>#VI14#@N@Rcpp@ST>1#T@PreserveStorage#$@N@Rcpp@S@Vector>#VI14#@N@Rcpp@ST>1#T@PreserveStorage#$@N@Rcpp@S@Vector>#VI13#@N@Rcpp@ST>1#T@PreserveStorage#d#",
+                "kind": 6,
+                "parent_name": "",
+                "name": "my_knn_c_task3(Rcpp::NumericMatrix, Rcpp::NumericVector, Rcpp::IntegerVector, double)",
+                "file": "C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Documentos/rcppAssignment/src/my_knn_c_function.cpp",
+                "line": 64,
+                "column": 5,
+                "hidden": false
+            }
+        ],
+        "hidden": false
+    },
+    {
+        "file": "C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Documentos/rcppAssignment/src/rcpp_hello_world.cpp",
+        "file_last_write": 1701621552.0,
         "definitions": [
             {
                 "usr": "c:@F@rcpp_hello_world#",
                 "kind": 6,
                 "parent_name": "",
                 "name": "rcpp_hello_world",
-                "file": "C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Documentos/mynewproject/src/rcpp_hello_world.cpp",
+                "file": "C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Documentos/rcppAssignment/src/rcpp_hello_world.cpp",
                 "line": 6,
                 "column": 6,
                 "hidden": false
