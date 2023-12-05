@@ -357,7 +357,7 @@ Last possible situation is when $p=0$, where an error message will be raised ind
 
 ## C++ code
 
--   **my_knn_c_tuningp**; Function which search the best value of $p$ over a set of possible options that are passing by the user and make the prediction for X0. It also return the accuracy of the model.
+-   **my_knn_c_tuningp**; Function which performance a search over a set of possible $p$ values provided by the user. And, after, with the value selected makes the prediction for X0. It also return the corresponding accuracy of the model.
 
 ```{Rcpp}
 #include <Rcpp.h>
@@ -412,9 +412,22 @@ List my_knn_c_tuningp(NumericMatrix X, NumericVector X0, IntegerVector y, Numeri
 
 ## Code compilation
 
+For showing functionality of **my_knn_c_tuningp** function, two demos are execute.
+
+-   **Demo 1**:
+
 ```{r}
-possible_p <- c(0.5,6,0.2)
+possible_p <- c(0.5,6,-1)
 print(my_knn_c_tuningp(X, X0, y, possible_p))
 ```
 
-As an insight for this last task, we can observed that for integer values which are positive the accuracy for the model is always the same. As a consequence, *my_knn_c_tuningp* function will always return the first value of *possible_p* vector. Which makes sense because all values produce the same accuracy so there is no option better than the others.
+-   **Demo 2**:
+
+```{r}
+possible_p <- c(5,2,7,6)
+print(my_knn_c_tuningp(X, X0, y, possible_p))
+```
+
+In both demos, the model reaches an accuracy of $96$% and the selected prediction class is the second one. However, the best p value is different.
+
+For this exercise it is worth mentioning that for positive values greater than $1$, the model obtains always the same accuracy ($96$%) and, as a consequence, it keeps the value that occupies the first position in the vector (possible_p) created by the user.

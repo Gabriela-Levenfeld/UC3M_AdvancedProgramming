@@ -113,11 +113,13 @@ List my_knn_c_tuningp(NumericMatrix X, NumericVector X0, IntegerVector y, Numeri
     }
   }
   
+  /* Use the best_p to make the final prediction for X0, we reused the code we
+   have donde for previous task */
+  int final_output = my_knn_c_task3(X, X0, y, best_p);
   // Return: final prediction, optimal value for p and the accuracy
   List final_params;
   final_params["best_p"] = best_p;
-  // Use the best_p to make the final prediction for X0
-  final_params["final_output"] = my_knn_c_task3(X, X0, y, best_p);
+  final_params["final_output"] = final_output;
   final_params["best_accuracy"] = best_accuracy;
   return final_params;
 }
