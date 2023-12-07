@@ -1,7 +1,7 @@
 [
     {
         "file": "C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Documentos/rcppAssignment/src/my_knn_c_function.cpp",
-        "file_last_write": 1701780251.0,
+        "file_last_write": 1701803462.0,
         "definitions": [
             {
                 "usr": "c:@F@my_knn_c_euclidean#$@N@Rcpp@S@Vector>#VI14#@N@Rcpp@ST>1#T@PreserveStorage#S0_#",
@@ -29,7 +29,7 @@
                 "parent_name": "",
                 "name": "my_knn_c_minkowsky(Rcpp::NumericVector, Rcpp::NumericVector, double)",
                 "file": "C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Documentos/rcppAssignment/src/my_knn_c_function.cpp",
-                "line": 40,
+                "line": 37,
                 "column": 8,
                 "hidden": false
             },
@@ -39,7 +39,7 @@
                 "parent_name": "",
                 "name": "my_knn_c_task3(Rcpp::NumericMatrix, Rcpp::NumericVector, Rcpp::IntegerVector, double)",
                 "file": "C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Documentos/rcppAssignment/src/my_knn_c_function.cpp",
-                "line": 64,
+                "line": 61,
                 "column": 5,
                 "hidden": false
             },
@@ -49,7 +49,7 @@
                 "parent_name": "",
                 "name": "my_knn_c_tuningp(Rcpp::NumericMatrix, Rcpp::NumericVector, Rcpp::IntegerVector, Rcpp::NumericVector)",
                 "file": "C:/Users/gabri/OneDrive - Universidad Carlos III de Madrid/Documentos/rcppAssignment/src/my_knn_c_function.cpp",
-                "line": 86,
+                "line": 80,
                 "column": 6,
                 "hidden": false
             }
