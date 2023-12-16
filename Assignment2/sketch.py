@@ -83,6 +83,15 @@ plt.show()
 sns.heatmap(wind_ava.isnull(), cbar=False)
 
 
+# Check if there are duplicate data -> No duplicate data
+exist_duplicates = wind_ava.duplicated().any()
+if exist_duplicates:
+    print("There are duplicate data in the dataset.")
+else:
+    print("There are no duplicate data in the dataset.")
+
+    
+
 #----------------------------------------------------------
 # Question 3: SPLIT into TRAIN and TEST
 
