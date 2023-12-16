@@ -15,12 +15,6 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-# Models and metrics
-# ===================
-
-# Data processing: aquí irían las librerías de pipeline, transformación de datos,...
-# ================
-
 
 
 wind_ava = pd.read_csv('data/wind_available.csv.gzip', compression="gzip") # Read train data
@@ -89,16 +83,3 @@ if exist_duplicates:
     print("There are duplicate data in the dataset.")
 else:
     print("There are no duplicate data in the dataset.")
-
-    
-
-#----------------------------------------------------------
-# Question 3: SPLIT into TRAIN and TEST
-
-SEED = 100507449
-
-years_ava = wind_ava['year'].unique()
-# In order to decide how to split the dataset
-year_counts = wind_ava.groupby('year').size()
-# Handling missing values
-
