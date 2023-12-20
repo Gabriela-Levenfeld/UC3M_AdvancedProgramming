@@ -83,3 +83,33 @@ if exist_duplicates:
     print("There are duplicate data in the dataset.")
 else:
     print("There are no duplicate data in the dataset.")
+    
+
+
+# Data visualisation: Identify any trends in energy production
+df = wind_ava.copy()
+df['datetime'] = pd.to_datetime(df[['year', 'month', 'day', 'hour']])
+df = df.sort_values('datetime')
+
+# Plotting energy over time
+plt.plot(df['datetime'], df['energy'])
+plt.title('Wind Energy Production Over Time')
+plt.xlabel('Time')
+plt.ylabel('Energy Production')
+plt.xticks(rotation=45)
+plt.show()
+
+# We observed 2008 year present weird results. However this makes sense because
+#during this year just have 178 record over the 1200 aprox. from the other years
+
+# Now, we plot energy just for 2008 year
+df_2008 = df[df['year'] == 2008]
+df_2008 = df_2008.sort_values('datetime')
+
+# Plotting energy over time
+plt.plot(df_2008['datetime'], df_2008['energy'])
+plt.title('2008 - Wind Energy Production')
+plt.xlabel('Time')
+plt.ylabel('Energy Production')
+plt.xticks(rotation=45)
+plt.show()
