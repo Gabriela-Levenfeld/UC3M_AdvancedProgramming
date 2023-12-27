@@ -25,10 +25,8 @@ from sklearn.preprocessing import StandardScaler, RobustScaler, MinMaxScaler
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn import tree
 from sklearn import metrics
-from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import KFold, GridSearchCV
 from sklearn.feature_selection import SelectKBest, f_regression
-
 
 
 
@@ -49,12 +47,26 @@ def split_data(data, years_train_train):
 
     return X_train, y_train, X_val, y_val
 
+def eval_metrics_model(y_val, y_val_pred):
+    """ Function to compute and print performance metrics: MAE, RMSE and R-squared """
+    
+    mae = metrics.mean_absolute_error(y_val, y_val_pred)
+    rmse = metrics.mean_squared_error(y_val, y_val_pred)
+    r2 = metrics.r2_score(y_val, y_val_pred)
+    
+    print(f'Mean Absolute Error (MAE): {mae}')
+    print(f'Root Mean Squared Error (RMSE): {rmse}')
+    print(f'R-squared: {r2}')
+    
+    return {'MAE': mae, 'RMSE': rmse, 'R^2': r2}
+
+
 
 if __name__ == "__main__":
     wind_ava = load_data('data/wind_available.csv.gzip')
     
     #----------------------------------------------------------
-    # Question 3: SPLIT into TRAIN and TEST
+    # Question 3. SPLIT into TRAIN and TEST
     
     # In order to decide how to split the dataset, we take a look on how data is distribute
     year_counts = wind_ava.groupby('year').size()
@@ -77,42 +89,57 @@ if __name__ == "__main__":
     
     
     #----------------------------------------------------------
-    # Question 4: Default hyper-parameters: Trees and KNN
+    # Question 4. Default hyper-parameters: Trees and KNN
     
     # Step: Handling missing values (KNN and Trees can not deal with NA)
     # No se puede hacer antes porque sino fuga de valores
     
-    # For KNN, prepocessing pipeline
-    imputer = SimpleImputer(strategy='median')
-    imputer = KNNImputer()
-    scaler = StandardScaler()
-    scaler = RobustScaler() #311
-    scaler = MinMaxScaler() #347.15
+    # KNN model
+    imputer_knn = KNNImputer() # Imputation transformer for completing missing values
     knn = KNeighborsRegressor()
     
-    reg_knn = Pipeline([
-        ('imputation', imputer),
-        ('standarization', scaler),
+    # Pipeline for KNN with Standard Scaler
+    reg_knn_std = Pipeline([
+        ('imputation', imputer_knn),
+        ('standarization', StandardScaler()),
         ('knn', knn)
         ])
     
-    reg_knn.fit(X_train, y_train)
-    y_val_pred = reg_knn.predict(X_val)
+    # Pipeline for KNN with Robust Scaler
+    reg_knn_robust = Pipeline([
+        ('imputation', imputer_knn),
+        ('standarization', RobustScaler()),
+        ('knn', knn)
+        ])
+        
+    # Pipeline for KNN with MinMax Scaler
+    reg_knn_minmax = Pipeline([
+        ('imputation', imputer_knn),
+        ('standarization', MinMaxScaler()),
+        ('knn', knn)
+        ])
     
-    mae = metrics.mean_absolute_error(y_val, y_val_pred)
-    print(f'Mean Absolute Error: {mae}')
-    rmse = metrics.mean_squared_error(y_val, y_val_pred)
-    print(f'Root Mean Squared Error (RMSE): {rmse}')
-    r2 = metrics.r2_score(y_val, y_val_pred)
-    print(f'R-squared: {r2}')
+    # Fit and evaluate KNN with Standard Scaler
+    reg_knn_std.fit(X_train, y_train)
+    y_val_pred_std = reg_knn_std.predict(X_val)  
+    metrics_knn_std = eval_metrics_model(y_val, y_val_pred_std)
     
+    # Fit and evaluate KNN with Robust Scaler
+    reg_knn_robust.fit(X_train, y_train)
+    y_val_pred_robust = reg_knn_robust.predict(X_val)    
+    metrics_knn_robust = eval_metrics_model(y_val, y_val_pred_robust)  
     
-    # Plot for the results
-    plt.scatter(y_val, y_val_pred)
+    # Fit and evaluate KNN with MinMax Scaler
+    reg_knn_minmax.fit(X_train, y_train)
+    y_val_pred_minmax = reg_knn_minmax.predict(X_val)  
+    metrics_knn_minmax = eval_metrics_model(y_val, y_val_pred_minmax)
+    
+    # Plot for the results - Standard Scaler (which performance better)
+    plt.scatter(y_val, y_val_pred_robust)
     plt.plot(y_val, y_val, color='red')
     plt.xlabel('Actual Energy output')
     plt.ylabel('Predicted Energy output')
-    plt.title('Actual vs Predicted values')
+    plt.title('Actual vs Predicted values (Standard Scaler)')
     plt.show()
     
     
@@ -121,25 +148,28 @@ if __name__ == "__main__":
     np.random.seed(SEED)
     
     # We define the type of training method (nothing happens yet)
-    reg_tree = tree.DecisionTreeRegressor(random_state=SEED)
+    tree_model = tree.DecisionTreeRegressor(random_state=SEED)
+    imputer_tree = SimpleImputer(strategy='mean') # Imputation transformer for completing missing values
+    
+    # Pipeline for Tree 
+    reg_tree = Pipeline([
+        ('imputation', imputer_tree),
+        ('tree', tree_model)
+        ])
+    
     # Now, we train (fit) the method on the train dataset
     reg_tree.fit(X_train, y_train)
-    #We use the model to predict on the validate set 
-    y_val_pred = reg_tree.predict(X_val)
-    
-    mae = metrics.mean_absolute_error(y_val, y_val_pred)
-    print(f'Mean Absolute Error: {mae}')
-    rmse = metrics.mean_squared_error(y_val, y_val_pred)
-    print(f'Root Mean Squared Error (RMSE): {rmse}')
-    r2 = metrics.r2_score(y_val, y_val_pred)
-    print(f'R-squared: {r2}')
+    # We use the model to predict on the validate set 
+    y_val_pred_tree = reg_tree.predict(X_val)
+    # Evaluate the model
+    metrics_tree = eval_metrics_model(y_val, y_val_pred_tree)
     
     #Plot for the results
-    plt.scatter(y_val, y_val_pred)
+    plt.scatter(y_val, y_val_pred_tree)
     plt.plot(y_val, y_val, color='red')
     plt.xlabel('Actual Energy output')
     plt.ylabel('Predicted Energy output')
-    plt.title('Actual vs Predicted values')
+    plt.title('Actual vs Predicted values (Tree)')
     plt.show()
     
     #----------------------------------------------------------
