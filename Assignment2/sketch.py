@@ -19,15 +19,14 @@ import matplotlib.pyplot as plt
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer, KNNImputer
 from sklearn.preprocessing import StandardScaler, RobustScaler, MinMaxScaler
+from scipy.stats import randint as sp_randint
 
 # Models and metrics
 # ===================
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn import tree
 from sklearn import metrics
-from sklearn.model_selection import KFold, GridSearchCV
-from sklearn.feature_selection import SelectKBest, f_regression
-
+from sklearn.model_selection import RandomizedSearchCV, PredefinedSplit
 
 
 def load_data(file_path):
@@ -48,7 +47,7 @@ def split_data(data, years_train_train):
     return X_train, y_train, X_val, y_val
 
 def eval_metrics_model(y_val, y_val_pred):
-    """ Function to compute and print performance metrics: MAE, RMSE and R-squared """
+    """ Function to compute and print performance metrics: MAE, RMSE and R-squared. """
     
     mae = metrics.mean_absolute_error(y_val, y_val_pred)
     rmse = metrics.mean_squared_error(y_val, y_val_pred)
@@ -59,6 +58,17 @@ def eval_metrics_model(y_val, y_val_pred):
     print(f'R-squared: {r2}')
     
     return {'MAE': mae, 'RMSE': rmse, 'R^2': r2}
+
+def plot_predictions(y_val, y_val_pred, model_name):
+    """ Plot real and predicted values for a given model. """
+    
+    x_lab = [i for i in range(len(y_val))]
+    plt.figure(figsize=(16, 4))
+    plt.plot(x_lab, y_val, label='Real values', marker='o')
+    plt.plot(x_lab, y_val_pred, label='Predicted values', marker='x')
+    plt.title(f'Predictions for {model_name}')
+    plt.legend()
+    plt.show()
 
 
 
@@ -135,13 +145,14 @@ if __name__ == "__main__":
     metrics_knn_minmax = eval_metrics_model(y_val, y_val_pred_minmax)
     
     # Plot for the results - Standard Scaler (which performance better)
-    plt.scatter(y_val, y_val_pred_robust)
+    plt.scatter(y_val, y_val_pred_std)
     plt.plot(y_val, y_val, color='red')
     plt.xlabel('Actual Energy output')
     plt.ylabel('Predicted Energy output')
     plt.title('Actual vs Predicted values (Standard Scaler)')
     plt.show()
     
+    plot_predictions(y_val, y_val_pred_std, 'KNN (Standard Scaler)')
     
     # Tree model
     SEED = 100507449
@@ -164,95 +175,90 @@ if __name__ == "__main__":
     # Evaluate the model
     metrics_tree = eval_metrics_model(y_val, y_val_pred_tree)
     
-    #Plot for the results
-    plt.scatter(y_val, y_val_pred_tree)
-    plt.plot(y_val, y_val, color='red')
-    plt.xlabel('Actual Energy output')
-    plt.ylabel('Predicted Energy output')
-    plt.title('Actual vs Predicted values (Tree)')
-    plt.show()
+    # Plot for the results
+    plot_predictions(y_val, y_val_pred_tree, 'Tree')
     
     #----------------------------------------------------------
-    # Question 5: Hyper-parameter tuning: Trees and KNN
+    # Question 5. Hyper-parameter tuning: Trees and KNN
     
-    #KNN
-    # Preprocessing the pipeline
-    imputer = SimpleImputer(strategy='median')
-    imputer = KNNImputer()
-    scaler = StandardScaler()
-    scaler = RobustScaler() #311
-    scaler = MinMaxScaler() #347.15
-    knn = KNeighborsRegressor()
-    selector = SelectKBest(f_regression)
+    # CODE Used for both models: KNN & Tree
+    # Defining a fixed train/validation grid search
+    # -1 means training, 0 means validation
+    validation_indices = np.zeros(X_train.shape[0]) 
+    validation_indices[:round(2/3*X_train.shape[0])] = -1
+    tr_val_partition = PredefinedSplit (validation_indices)
     
-    #Defining the pipeline
-    reg_knn = Pipeline([
-        ('imputation', imputer),
-        ('standarization', scaler),
-        ('knn', knn),
-        ('select', selector),
+    # KNN model
+    # Defining the method (KNN) with pipeline
+    reg_knn_hpo = Pipeline([
+        ('imputation', imputer_knn),
+        ('standarization', StandardScaler()),
+        ('knn', knn)
         ])
-    # Defining the hyperparameter space
-    param_grid = {'select__k': [2,3,4],
-                  'knn__n_neighbors': [1,3,5]}
     
-    # Defining a 5 fold crossvalidation grid search
-    inner_cv= KFold(n_splits=5, shuffle=True, random_state=SEED)
+    # Defining the Search space
+    param_grid_knn = {'knn__n_neighbors': sp_randint(2,16,2),
+                      'knn__weights': ['uniform', 'distance'],
+                      'knn__leaf_size': sp_randint(10,50,2)}
     
-    reg_knn_grid = GridSearchCV(reg_knn,
-                            param_grid,
-                            scoring = 'neg_mean_squared_error', 
-                            cv=inner_cv, n_jobs=1, verbose=1)
-    # Now, we train (fit) the method on the train dataset
-    reg_knn_grid.fit(X_train , y_train)
-    y_val_pred = reg_knn_grid.predict(X_val)
+    reg_knn_grid = RandomizedSearchCV(reg_knn_hpo,
+                                param_distributions=param_grid_knn,
+                                n_iter=10,
+                                scoring='neg_mean_absolute_error',
+                                cv=tr_val_partition,
+                                n_jobs=1, verbose=1)
     
-    # The best hyper parameter values (and their scores) can be accessed
-    reg_knn_grid.best_params_
-    reg_knn_grid.best_score_
-    
+    reg_knn_grid.fit(X_train, y_train) # Now, we train (fit) the method on the train dataset
+    y_val_pred_hpo_knn = reg_knn_grid.predict(X_val) # We use the model to predict on the validate set 
+    metrics_hpo_knn = eval_metrics_model(y_val, y_val_pred_hpo_knn) # Evaluate the model
     
     # Plot for the results
-    plt.scatter(y_val, y_val_pred)
-    plt.plot(y_val, y_val, color='red')
-    plt.xlabel('Actual Energy output')
-    plt.ylabel('Predicted Energy output')
-    plt.title('Actual vs Predicted values')
-    plt.show()
-
-
-
-
-    # Trees
+    plot_predictions(y_val, y_val_pred_hpo_knn, 'HPO KNN')
+    
+    # The best hyper parameter values (and their scores) can be accessed
+    print(f'Best hyper-parameters: {reg_knn_grid.best_params_} and inner evaluation: {reg_knn_grid.best_score_}')
+    
+    
+    # Tree model
     # Defining the method
-    reg_tree = tree.DecisionTreeRegressor(random_state=SEED)
+    reg_tree_hpo = Pipeline([
+        ('imputation', imputer_tree),
+        ('tree', tree_model)
+        ])
+    
     # Defining the Search space
-    param_grid = {'max_depth': range(2,16,2),
-                  'min_samples_split': range(2,34,2)}
-    cv=KFold(n_splits=5, shuffle=True, random_state=SEED)
-    reg_grid = GridSearchCV(reg_tree,
-                            param_grid,
-                            scoring='neg_mean_squared_error',
-                            cv=cv,
-                            n_jobs= 1 , 
-                            verbose=1)
-    # Fit does hyper parameter tuning, followed by training the model 
-    # with the best hyper parameters found
-    reg_grid.fit(X_train, y_train)
-    # Making predictions on the validating partition
-    y_val_pred = reg_grid.predict(X_val)
-    # And finally computing the test accuracy (estimation of future
-    # performance or outer evaluation)
-    print(metrics.accuracy_score(y_val_pred, y_val))
-            
-            
+    param_grid_tree = {'tree__max_depth': sp_randint(2,16,2),
+                       'tree__min_samples_split': sp_randint(2,34),
+                       'tree__min_samples_leaf': sp_randint(1,30,5)}
+    
+    reg_tree_grid = RandomizedSearchCV(reg_tree_hpo,
+                                       param_distributions=param_grid_tree,
+                                       n_iter=10,
+                                       scoring='neg_mean_absolute_error',
+                                       cv=tr_val_partition,
+                                       n_jobs=1, verbose=1)
+
+    reg_tree_grid.fit(X_train, y_train) # Training the model with the grid-search
+    y_val_pred_hpo_tree = reg_tree_grid.predict(X_val) # Making predictions on the validate set 
+    metrics_hpo_tree = eval_metrics_model(y_val, y_val_pred_hpo_tree) # Evaluate the model
+    
+    # Plot for the results
+    plot_predictions(y_val, y_val_pred_hpo_tree, 'HPO Tree')
+    
+    # The best hyper parameter values (and their scores) can be accessed
+    print(f'Best hyper-parameters: {reg_tree_grid.best_params_} and inner evaluation: {reg_tree_grid.best_score_}')
     
     
-    
-    
-    
-    
-    
-    
-    
+    # Report a summary with results
+    summary_models = pd.DataFrame({
+        'Model': ['KNN', 'KNN', 'KNN', 'Tree', 'KNN (HPO)', 'Tree (HPO)'],
+        'Standarization': ['Standard Scaler', 'Robust Scaler', 'MinMax Scaler', 'None', 'Standard Scaler', 'None'],
+        'Best Hyperparameters': ['Default', 'Default', 'Default', 'Default', reg_knn_grid.best_params_, reg_tree_grid.best_params_],
+        'Validation MAE': [metrics_knn_std['MAE'], metrics_knn_robust['MAE'], metrics_knn_minmax['MAE'], metrics_tree['MAE'], metrics_hpo_knn['MAE'], metrics_hpo_tree['MAE']],
+        'Validation R2': [metrics_knn_std['R^2'], metrics_knn_robust['R^2'], metrics_knn_minmax['R^2'], metrics_tree['R^2'], metrics_hpo_knn['R^2'], metrics_hpo_tree['R^2']],
+        'Validation RMSE': [metrics_knn_std['RMSE'], metrics_knn_robust['RMSE'], metrics_knn_minmax['RMSE'], metrics_tree['RMSE'], metrics_hpo_knn['RMSE'], metrics_hpo_tree['RMSE']]
+    })
+    summary_df = pd.DataFrame(summary_models)
+    summary_df.to_csv('results/models_summary.csv', index=False)
+    print("Summary has been saved to 'models_summary.csv'")
     
