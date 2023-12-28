@@ -262,3 +262,24 @@ if __name__ == "__main__":
     summary_df.to_csv('results/models_summary.csv', index=False)
     print("Summary has been saved to 'models_summary.csv'")
     
+    #----------------------------------------------------------
+    # Question 6. Only with the Best method
+    
+    # b -> Final model
+    # Look for the best model
+    df = pd.read_csv('models_summary.csv')
+    best_model = df.loc[df['Validation MAE'].idxmin()]
+    print(f'Best Model: {best_model["Model"]}')
+    
+    # reg_knn_grid has already been defined: it carries out HPO with randomized search
+    # In order to get the final model using the entire dataset, we just fit reg_knn_hpo again, using (X,y)
+    final_model = reg_knn_grid.fit(X, y) # FIXME: No está bien esto
+    # Now, we can use the final_model to make predictions on new data
+    wind_comp = load_data('data/wind_competition.csv.gzip') # Load new data
+    pred_new = final_model.predict(wind_comp)
+    
+    wind_comp['Predictions'] = pred_new
+    # Save predictions for the competition dataset
+    wind_comp.to_csv('results/predictions_wind_competition.csv', index=False)
+    
+    # TODO: Save final_model
