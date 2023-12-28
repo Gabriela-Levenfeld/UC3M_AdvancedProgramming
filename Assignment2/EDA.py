@@ -25,6 +25,7 @@ wind_ava = pd.read_csv('data/wind_available.csv.gzip', compression="gzip") # Rea
 # How many features and instances are?
 wind_ava.shape # Tamaño del dataset: (4748, 555)
 wind_ava.info() # The goal is to get a quick and general summary
+                # 551 float variables, 4 int variables 
 
 print('Number of features:', wind_ava.columns.size)
 print('Number of instances:', len(wind_ava.iloc[:,0]))
@@ -52,6 +53,17 @@ for column in wind_ava.columns:
         print(column, wind_ava[column].dtypes)
 
 
+# Check for constant columns
+columnas_constantes = wind_ava.columns[wind_ava.nunique() == 1]
+
+# Show constant columns (if there are)
+if len(columnas_constantes) > 0:
+    print(f"Columnas constantes encontradas: {', '.join(columnas_constantes)}")
+else:
+    print("No se encontraron columnas constantes.")
+
+#no hay columnas constantes
+
 # Identificamos el número de missing values en cada columna
 wind_ava.isnull().sum()
 
@@ -63,7 +75,7 @@ for column in wind_ava.columns:
     if column[-2:] == '13' or column in ['energy', 'year', 'month', 'day', 'hour']:
         print(column, wind_ava[column].isnull().sum())
 
-# We can also identify missing values in a graphycally way
+# We can also identify missing values in a graphical way
 # Missing values for Sotavento point
     # Filtering Sotavento point data
 sotavento_columns = [column for column in wind_ava.columns if column[-2:] == '13' or column in ['energy', 'year', 'month', 'day', 'hour']]
