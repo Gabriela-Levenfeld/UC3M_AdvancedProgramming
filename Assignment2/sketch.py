@@ -24,10 +24,11 @@ from scipy.stats import randint as sp_randint
 # Models and metrics
 # ===================
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn import tree
-from sklearn import metrics
+from sklearn import tree, metrics, set_config
 from sklearn.model_selection import RandomizedSearchCV, PredefinedSplit
+from sklearn.feature_selection import SelectKBest, f_regression, mutual_info_regression
 
+set_config(display='diagram', transform_output='pandas')
 
 def load_data(file_path):
     return pd.read_csv(file_path, compression="gzip")
@@ -144,7 +145,7 @@ if __name__ == "__main__":
     y_val_pred_minmax = reg_knn_minmax.predict(X_val)  
     metrics_knn_minmax = eval_metrics_model(y_val, y_val_pred_minmax)
     
-    # Plot for the results - Standard Scaler (which performance better)
+    # Plot for the results - Standard Scaler (with better performance)
     plt.scatter(y_val, y_val_pred_std)
     plt.plot(y_val, y_val, color='red')
     plt.xlabel('Actual Energy output')
@@ -261,13 +262,13 @@ if __name__ == "__main__":
     summary_df = pd.DataFrame(summary_models)
     summary_df.to_csv('results/models_summary.csv', index=False)
     print("Summary has been saved to 'models_summary.csv'")
-    
+     
     #----------------------------------------------------------
     # Question 6. Only with the Best method
     
     # b -> Final model
     # Look for the best model
-    df = pd.read_csv('models_summary.csv')
+    df = pd.read_csv('results/models_summary.csv')
     best_model = df.loc[df['Validation MAE'].idxmin()]
     print(f'Best Model: {best_model["Model"]}')
     
@@ -283,3 +284,64 @@ if __name__ == "__main__":
     wind_comp.to_csv('results/predictions_wind_competition.csv', index=False)
     
     # TODO: Save final_model
+    
+    #----------------------------------------------------------
+    # Question 7. Feature selection for KNN
+    
+    imputer = SimpleImputer(strategy='mean')
+    selector = SelectKBest()
+    knn = KNeighborsRegressor(n_neighbors=16) #the best parameter for this is 16 according to hpo
+ 
+    # Defining the method (KNN) with pipeline
+    reg_knn_fs = Pipeline([
+        ('imputation', imputer),
+        ('standarization', StandardScaler()),
+        ('knn', knn),
+        ('select', selector)
+    ])
+
+    # Defining the Search space
+    param_grid = {'select__k': list(np.random.randint(2, 16, 2)), 
+                  'select__score_func': [f_regression, mutual_info_regression]}
+    
+    # Defining a fixed train/validation grid search
+    # -1 means training, 0 means validation
+    validation_indices = np.zeros(X_train.shape[0]) 
+    validation_indices[:round(2/3*X_train.shape[0])] = -1
+    tr_val_partition = PredefinedSplit (validation_indices)
+        
+    
+    fs_grid = RandomizedSearchCV(reg_knn_fs,
+                               param_grid,
+                               n_iter=10,
+                               scoring='neg_mean_absolute_error',
+                               cv=tr_val_partition,
+                               n_jobs=1, verbose=1)
+    fs_grid = fs_grid.fit(X_train , y_train)
+    
+    y_val_pred_fs=fs_grid.predict(X_val)
+    
+    #Get the selected feature names
+    feature_names_after_impute= wind_ava.feature_names
+    selected_feature_names= (fs_grid.best_estimator_.named_steps['select'],
+                             get_feature_names_out(input_features=feature_names_after_impute))
+                             
+    
+    #Get the best score
+    best_score = fs_grid.best_score_
+    best_params = fs_grid.best_params_
+    feature_scores = fs_grid.best_estimator_.named_steps['select'].scores_
+    print("Best score (negative mean error):", best_score)
+    print("Best params:", best_params)
+    print("Selected features and scores")
+    for elem in zip(selected_feature_names, feature_scores):
+        print(elem)
+
+    
+    
+    
+    
+    
+    
+    
+    
