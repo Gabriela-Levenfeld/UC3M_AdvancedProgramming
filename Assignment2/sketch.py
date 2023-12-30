@@ -28,6 +28,8 @@ from sklearn import tree, metrics, set_config
 from sklearn.model_selection import RandomizedSearchCV, PredefinedSplit
 from sklearn.feature_selection import SelectKBest, f_regression, mutual_info_regression
 
+from joblib import dump
+
 set_config(display='diagram', transform_output='pandas')
 
 def load_data(file_path):
@@ -187,7 +189,7 @@ if __name__ == "__main__":
     # -1 means training, 0 means validation
     validation_indices = np.zeros(X_train.shape[0]) 
     validation_indices[:round(2/3*X_train.shape[0])] = -1
-    tr_val_partition = PredefinedSplit (validation_indices)
+    tr_val_partition = PredefinedSplit(validation_indices)
     
     # KNN model
     # Defining the method (KNN) with pipeline
@@ -204,10 +206,10 @@ if __name__ == "__main__":
     
     reg_knn_grid = RandomizedSearchCV(reg_knn_hpo,
                                 param_distributions=param_grid_knn,
-                                n_iter=10,
+                                n_iter=20,
                                 scoring='neg_mean_absolute_error',
                                 cv=tr_val_partition,
-                                n_jobs=1, verbose=1)
+                                n_jobs=4, verbose=1)
     
     reg_knn_grid.fit(X_train, y_train) # Now, we train (fit) the method on the train dataset
     y_val_pred_hpo_knn = reg_knn_grid.predict(X_val) # We use the model to predict on the validate set 
@@ -266,6 +268,8 @@ if __name__ == "__main__":
     #----------------------------------------------------------
     # Question 6. Only with the Best method
     
+    # a -> Estimation of the error at the competition
+    
     # b -> Final model
     # Look for the best model
     df = pd.read_csv('results/models_summary.csv')
@@ -273,8 +277,17 @@ if __name__ == "__main__":
     print(f'Best Model: {best_model["Model"]}')
     
     # reg_knn_grid has already been defined: it carries out HPO with randomized search
+    best_params_knn_hpo = reg_knn_grid.best_params_
     # In order to get the final model using the entire dataset, we just fit reg_knn_hpo again, using (X,y)
-    final_model = reg_knn_grid.fit(X, y) # FIXME: No está bien esto
+    final_model = Pipeline([
+        ('imputation', imputer_knn),
+        ('standarization', StandardScaler()),
+        ('knn', KNeighborsRegressor(leaf_size=best_params_knn_hpo['knn__leaf_size'],
+                                    n_neighbors=best_params_knn_hpo['knn__n_neighbors'],
+                                    weights=best_params_knn_hpo['knn__weights']))
+        ])
+
+    final_model.fit(X, y)
     # Now, we can use the final_model to make predictions on new data
     wind_comp = load_data('data/wind_competition.csv.gzip') # Load new data
     pred_new = final_model.predict(wind_comp)
@@ -283,8 +296,9 @@ if __name__ == "__main__":
     # Save predictions for the competition dataset
     wind_comp.to_csv('results/predictions_wind_competition.csv', index=False)
     
-    # TODO: Save final_model
-    
+    # Save the final_model
+    dump(final_model, 'results/final_model.joblib')
+
     #----------------------------------------------------------
     # Question 7. Feature selection for KNN
     
