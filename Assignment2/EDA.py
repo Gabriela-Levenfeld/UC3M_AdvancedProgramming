@@ -15,9 +15,13 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+# Own functions
+# ==============
+from utils import load_data
 
 
-wind_ava = pd.read_csv('data/wind_available.csv.gzip', compression="gzip") # Read train data
+
+wind_ava = load_data('data/wind_available.csv.gzip') # Read train data
 
 #----------------------------------------------------------
 # Question 2: SIMPLIFIED EDA
