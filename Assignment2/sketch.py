@@ -10,10 +10,6 @@ Created on Tue Dec 12 09:42:12 2023
 import pandas as pd
 import numpy as np
 
-# Visualization
-# ==============
-import matplotlib.pyplot as plt
-
 # Data processing
 # ================
 from sklearn.pipeline import Pipeline
@@ -60,11 +56,7 @@ if __name__ == "__main__":
     
     # The data we will use to train the final model:
     X = wind_ava.drop(columns='energy')
-    y = wind_ava['energy'].values
-    
-    #----------------------------------------------------------
-    # Step 3.5: Ouliers -> los manejamos (?)
-    
+    y = wind_ava['energy'].values    
     
     #----------------------------------------------------------
     # Question 4. Default hyper-parameters: Trees and KNN
@@ -112,14 +104,7 @@ if __name__ == "__main__":
     y_val_pred_minmax = reg_knn_minmax.predict(X_val)  
     metrics_knn_minmax = eval_metrics_model(y_val, y_val_pred_minmax)
     
-    # Plot for the results - Standard Scaler (with better performance)
-    plt.scatter(y_val, y_val_pred_std)
-    plt.plot(y_val, y_val, color='red')
-    plt.xlabel('Actual Energy output')
-    plt.ylabel('Predicted Energy output')
-    plt.title('Actual vs Predicted values (Standard Scaler)')
-    plt.show()
-    
+    # Plot for the results - Standard Scaler (with better performance)    
     plot_predictions(y_val, y_val_pred_std, 'KNN (Standard Scaler)')
     
     # Tree model
@@ -136,12 +121,9 @@ if __name__ == "__main__":
         ('tree', tree_model)
         ])
     
-    # Now, we train (fit) the method on the train dataset
-    reg_tree.fit(X_train, y_train)
-    # We use the model to predict on the validate set 
-    y_val_pred_tree = reg_tree.predict(X_val)
-    # Evaluate the model
-    metrics_tree = eval_metrics_model(y_val, y_val_pred_tree)
+    reg_tree.fit(X_train, y_train) # Now, we train (fit) the method on the train dataset
+    y_val_pred_tree = reg_tree.predict(X_val) # We use the model to predict on the validate set 
+    metrics_tree = eval_metrics_model(y_val, y_val_pred_tree) # Evaluate the model
     
     # Plot for the results
     plot_predictions(y_val, y_val_pred_tree, 'Tree')
