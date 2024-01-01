@@ -40,7 +40,7 @@ def eval_metrics_model(y_val, y_val_pred):
     """ Function to compute and print performance metrics: MAE, RMSE and R-squared. """
     
     mae = metrics.mean_absolute_error(y_val, y_val_pred)
-    rmse = metrics.mean_squared_error(y_val, y_val_pred)
+    rmse = metrics.mean_squared_error(y_val, y_val_pred, squared=False)
     r2 = metrics.r2_score(y_val, y_val_pred)
     
     print(f'Mean Absolute Error (MAE): {mae}')
