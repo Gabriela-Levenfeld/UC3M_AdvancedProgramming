@@ -24,13 +24,14 @@ from sklearn import tree, set_config
 from sklearn.model_selection import RandomizedSearchCV, PredefinedSplit
 from sklearn.feature_selection import SelectKBest, f_regression, mutual_info_regression
 
-# Model Serialization
-# ====================
-from joblib import dump
-
 # Bayesian search
 # ================
 import optuna
+
+# Other library needed
+# =====================
+from joblib import dump
+import time
 
 # Own functions
 # ==============
@@ -250,20 +251,34 @@ if __name__ == "__main__":
     # Look for the best model
     df = pd.read_csv('results/models_summary.csv')
     best_model = df.loc[df['Validation MAE'].idxmin()]
-    print(f'Best Model: {best_model["Model"]}')
+    print(f'The best model is {best_model["Model"]} with {best_model["Search"]}.')
     
-    # reg_knn_grid has already been defined: it carries out HPO with randomized search
-    best_params_knn_hpo = reg_knn_grid.best_params_
-    # In order to get the final model using the entire dataset, we just fit reg_knn_hpo again, using (X,y)
+    # The best model is KNN with Bayesian-search
+    # best_params_bo has already been defined and it carries out the parameters of the HPO with bayesian search
+    scalers = best_params_bo['scalers']
+    if scalers == "minmax":
+        best_scaler = MinMaxScaler()
+    elif scalers == "standard":
+        best_scaler = StandardScaler()
+    else:
+        best_scaler = RobustScaler()
+        
     final_model = Pipeline([
         ('imputation', imputer_knn),
-        ('standarization', StandardScaler()),
-        ('knn', KNeighborsRegressor(leaf_size=best_params_knn_hpo['knn__leaf_size'],
-                                    n_neighbors=best_params_knn_hpo['knn__n_neighbors'],
-                                    weights=best_params_knn_hpo['knn__weights']))
+        ('standarization', best_scaler),
+        ('knn', KNeighborsRegressor(n_neighbors=best_params_bo['n_neighbors'],
+                                    weights=best_params_bo['weights'],
+                                    algorithm=best_params_bo['algorithm'],
+                                    leaf_size=best_params_bo['leaf_size']))
         ])
-
+    
+    start_time = time.time()
+    # In order to get the final model we need to train using the entire dataset (X,y)
     final_model.fit(X, y)
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f"Execution time: {execution_time} seconds")
+
     # Now, we can use the final_model to make predictions on new data
     wind_comp = load_data('data/wind_competition.csv.gzip') # Load new data
     pred_new = final_model.predict(wind_comp)
