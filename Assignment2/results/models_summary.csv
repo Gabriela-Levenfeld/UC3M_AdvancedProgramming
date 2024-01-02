@@ -1,7 +1,8 @@
-Model,Standarization,Best Hyperparameters,Validation MAE,Validation R2,Validation RMSE
-KNN,Standard Scaler,Default,311.9185320304017,0.5731130919468399,189780.56798195877
-KNN,Robust Scaler,Default,324.5408230184582,0.5387178858877225,205071.60084948098
-KNN,MinMax Scaler,Default,334.3164625407166,0.5115156990176499,217164.84235481868
-Tree,None,Default,386.6283821932682,0.36605971442330476,281830.0238160695
-KNN (HPO),Standard Scaler,"{'knn__leaf_size': 25, 'knn__n_neighbors': 15, 'knn__weights': 'distance'}",308.4349833422852,0.592795994726474,181030.16500968614
-Tree (HPO),None,"{'tree__max_depth': 10, 'tree__min_samples_leaf': 23, 'tree__min_samples_split': 13}",338.597121386967,0.5123420940244816,216797.4529811571
+Model,Search,Standarization,Best Hyperparameters,Validation MAE,Validation R2,Validation RMSE
+KNN,None,standard,Default,311.9185320304017,0.5731130919468399,435.63811585071244
+KNN,None,robust,Default,324.5408230184582,0.5387178858877225,452.8483199146056
+KNN,None,MinMax,Default,334.3164625407166,0.5115156990176499,466.009487408592
+Tree,None,None,Default,386.6283821932682,0.36605971442330476,530.8766559343794
+KNN,Random-search,standard,"{'knn__leaf_size': 25, 'knn__n_neighbors': 15, 'knn__weights': 'distance'}",308.4349833422852,0.592795994726474,425.47639771165467
+Tree,Random-search,None,"{'tree__max_depth': 9, 'tree__min_samples_leaf': 15, 'tree__min_samples_split': 10}",333.43699253486744,0.5131623548597402,465.2233771730783
+KNN,Bayesian-search,standard,"{'n_neighbors': 12, 'weights': 'distance', 'algorithm': 'kd_tree', 'leaf_size': 20}",303.6269909332641,NaN,NaN

@@ -28,9 +28,14 @@ from sklearn.feature_selection import SelectKBest, f_regression, mutual_info_reg
 # ====================
 from joblib import dump
 
+# Bayesian search
+# ================
+import optuna
+
 # Own functions
 # ==============
 from utils import load_data, split_data, eval_metrics_model, plot_predictions
+from knn_bayesian_search import param_search_bo, write_trials_to_csv
 
 set_config(display='diagram', transform_output='pandas')
 
@@ -129,7 +134,7 @@ if __name__ == "__main__":
     plot_predictions(y_val, y_val_pred_tree, 'Tree')
     
     #----------------------------------------------------------
-    # Question 5. Hyper-parameter tuning: Trees and KNN
+    # Question 5 (Part 1). Hyper-parameter tuning with random-search: Trees and KNN
     
     # CODE Used for both models: KNN & Tree
     # Defining a fixed train/validation grid search
@@ -158,8 +163,8 @@ if __name__ == "__main__":
                                 cv=tr_val_partition,
                                 n_jobs=4, verbose=1)
     
-    reg_knn_grid.fit(X_train, y_train) # Now, we train (fit) the method on the train dataset
-    y_val_pred_hpo_knn = reg_knn_grid.predict(X_val) # We use the model to predict on the validate set 
+    reg_knn_grid.fit(X_train, y_train) # Training the model with the grid search
+    y_val_pred_hpo_knn = reg_knn_grid.predict(X_val) # Making predictions on the validate set
     metrics_hpo_knn = eval_metrics_model(y_val, y_val_pred_hpo_knn) # Evaluate the model
     
     # Plot for the results
@@ -170,7 +175,7 @@ if __name__ == "__main__":
     
     
     # Tree model
-    # Defining the method
+    # Defining the method with pipeline
     reg_tree_hpo = Pipeline([
         ('imputation', imputer_tree),
         ('tree', tree_model)
@@ -183,12 +188,12 @@ if __name__ == "__main__":
     
     reg_tree_grid = RandomizedSearchCV(reg_tree_hpo,
                                        param_distributions=param_grid_tree,
-                                       n_iter=10,
+                                       n_iter=20,
                                        scoring='neg_mean_absolute_error',
                                        cv=tr_val_partition,
-                                       n_jobs=1, verbose=1)
+                                       n_jobs=3, verbose=1)
 
-    reg_tree_grid.fit(X_train, y_train) # Training the model with the grid-search
+    reg_tree_grid.fit(X_train, y_train) # Training the model with the grid search
     y_val_pred_hpo_tree = reg_tree_grid.predict(X_val) # Making predictions on the validate set 
     metrics_hpo_tree = eval_metrics_model(y_val, y_val_pred_hpo_tree) # Evaluate the model
     
@@ -198,20 +203,44 @@ if __name__ == "__main__":
     # The best hyper parameter values (and their scores) can be accessed
     print(f'Best hyper-parameters: {reg_tree_grid.best_params_} and inner evaluation: {reg_tree_grid.best_score_}')
     
+    #----------------------------------------------------------
+    # Step 5.5. Hyper-parameter tuning: KNN with bayesian-search
     
-    # Report a summary with results
+    # Create Optuna study
+    study_knn = optuna.create_study(study_name='AP_Task2',
+                                    direction='minimize',
+                                    storage = 'sqlite:///KNNPredictBO.db',
+                                    load_if_exists=True)
+    # Bayesian search
+    n_trials=60
+    best_params_bo = param_search_bo((X_train, y_train), (X_val, y_val), study_knn, n_trials)
+    best_mae_bo = study_knn.best_value
+    print(f'Best hyper-parameters: {study_knn.best_params}')
+     
+    # Extra info with all trials compute during the bayesian search
+    trials = study_knn.get_trials()
+    trial_bo_csv_path = 'results/trials_info.csv'
+    write_trials_to_csv(trials, trial_bo_csv_path)
+    print(f"All trials information with Bayesian-search has been saved in '{trial_bo_csv_path}'")
+
+    #----------------------------------------------------------
+    # Question 5 (Part 2). Report a summary with results
+    name_bo_params = {key: value for key, value in best_params_bo.items() if key != 'scalers'}
+
     summary_models = pd.DataFrame({
-        'Model': ['KNN', 'KNN', 'KNN', 'Tree', 'KNN (HPO)', 'Tree (HPO)'],
-        'Standarization': ['Standard Scaler', 'Robust Scaler', 'MinMax Scaler', 'None', 'Standard Scaler', 'None'],
-        'Best Hyperparameters': ['Default', 'Default', 'Default', 'Default', reg_knn_grid.best_params_, reg_tree_grid.best_params_],
-        'Validation MAE': [metrics_knn_std['MAE'], metrics_knn_robust['MAE'], metrics_knn_minmax['MAE'], metrics_tree['MAE'], metrics_hpo_knn['MAE'], metrics_hpo_tree['MAE']],
-        'Validation R2': [metrics_knn_std['R^2'], metrics_knn_robust['R^2'], metrics_knn_minmax['R^2'], metrics_tree['R^2'], metrics_hpo_knn['R^2'], metrics_hpo_tree['R^2']],
-        'Validation RMSE': [metrics_knn_std['RMSE'], metrics_knn_robust['RMSE'], metrics_knn_minmax['RMSE'], metrics_tree['RMSE'], metrics_hpo_knn['RMSE'], metrics_hpo_tree['RMSE']]
+        'Model': ['KNN', 'KNN', 'KNN', 'Tree', 'KNN', 'Tree', 'KNN'],
+        'Search': ['None', 'None', 'None', 'None', 'Random-search', 'Random-search', 'Bayesian-search'],
+        'Standarization': ['standard', 'robust', 'MinMax', 'None', 'standard', 'None', best_params_bo['scalers']],
+        'Best Hyperparameters': ['Default', 'Default', 'Default', 'Default', reg_knn_grid.best_params_, reg_tree_grid.best_params_, name_bo_params],
+        'Validation MAE': [metrics_knn_std['MAE'], metrics_knn_robust['MAE'], metrics_knn_minmax['MAE'], metrics_tree['MAE'], metrics_hpo_knn['MAE'], metrics_hpo_tree['MAE'], best_mae_bo],
+        'Validation R2': [metrics_knn_std['R^2'], metrics_knn_robust['R^2'], metrics_knn_minmax['R^2'], metrics_tree['R^2'], metrics_hpo_knn['R^2'], metrics_hpo_tree['R^2'], 'NaN'],
+        'Validation RMSE': [metrics_knn_std['RMSE'], metrics_knn_robust['RMSE'], metrics_knn_minmax['RMSE'], metrics_tree['RMSE'], metrics_hpo_knn['RMSE'], metrics_hpo_tree['RMSE'], 'NaN']
     })
     summary_df = pd.DataFrame(summary_models)
-    summary_df.to_csv('results/models_summary.csv', index=False)
-    print("Summary has been saved to 'models_summary.csv'")
-     
+    summary_csv_path = 'results/models_summary.csv'
+    summary_df.to_csv(summary_csv_path, index=False)
+    print(f"Summary has been saved in '{summary_csv_path}'")
+    
     #----------------------------------------------------------
     # Question 6. Only with the Best method
     
