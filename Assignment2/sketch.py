@@ -340,3 +340,13 @@ if __name__ == "__main__":
     print("Selected features and scores sorted")
     for elem in sorted_features:
         print(elem)
+        
+    # How many features are selected per location
+    point_counts = [0] * 26
+    for elem in sorted_features:
+        point_number = int(elem[0].split('.')[1])
+        point_counts[point_number] += 1
+    
+    for point, count in enumerate(point_counts):
+        if count > 0:
+            print(f'Point {point}: {count} selected features')

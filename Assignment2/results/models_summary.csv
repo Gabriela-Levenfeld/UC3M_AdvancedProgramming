@@ -5,4 +5,4 @@ KNN,None,MinMax,Default,334.3164625407166,0.5115156990176499,466.009487408592,19
 Tree,None,None,Default,386.6283821932682,0.36605971442330476,530.8766559343794,5.301138162612915
 KNN,Random-search,standard,"{'knn__leaf_size': 25, 'knn__n_neighbors': 15, 'knn__weights': 'distance'}",308.4349833422852,0.592795994726474,425.47639771165467,118.80751943588257
 Tree,Random-search,None,"{'tree__max_depth': 9, 'tree__min_samples_leaf': 15, 'tree__min_samples_split': 10}",333.43699253486744,0.5131623548597402,465.2233771730783,15.236520767211914
-KNN,Bayesian-search,standard,"{'n_neighbors': 12, 'weights': 'distance', 'algorithm': 'ball_tree', 'leaf_size': 38}",303.6269909332641,NaN,NaN,47.354302
+KNN,Bayesian-search,standard,"{'n_neighbors': 12, 'weights': 'distance', 'algorithm': 'kd_tree', 'leaf_size': 20}",303.6269909332641,NaN,NaN,47.354302
