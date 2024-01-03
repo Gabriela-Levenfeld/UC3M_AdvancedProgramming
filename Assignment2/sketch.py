@@ -307,7 +307,7 @@ if __name__ == "__main__":
         ])
     
     # Defining hyper-parameter space
-    param_grid_fs = {'select__k': list(range(4, 40, 1)),
+    param_grid_fs = {'select__k': list(range(4, 80, 1)),
                      'select__score_func': [f_regression, mutual_info_regression]}
     
     reg_fs_grid = GridSearchCV(reg_knn_fs,
