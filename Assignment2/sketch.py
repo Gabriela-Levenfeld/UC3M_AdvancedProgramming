@@ -21,7 +21,7 @@ from scipy.stats import randint as sp_randint
 # ===================
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn import tree, set_config
-from sklearn.model_selection import RandomizedSearchCV, PredefinedSplit
+from sklearn.model_selection import RandomizedSearchCV, PredefinedSplit, GridSearchCV
 from sklearn.feature_selection import SelectKBest, f_regression, mutual_info_regression
 
 # Bayesian search
@@ -310,12 +310,12 @@ if __name__ == "__main__":
     param_grid_fs = {'select__k': list(range(4, 40, 1)),
                      'select__score_func': [f_regression, mutual_info_regression]}
     
-    reg_fs_grid = RandomizedSearchCV(reg_knn_fs,
-                                     param_distributions=param_grid_fs,
-                                     n_iter=20,
-                                     scoring='neg_mean_absolute_error',
-                                     cv=tr_val_partition,
-                                     n_jobs=4, verbose=1)
+    reg_fs_grid = GridSearchCV(reg_knn_fs,
+                               param_grid=param_grid_fs,
+                               n_iter=20,
+                               scoring='neg_mean_absolute_error',
+                               cv=tr_val_partition,
+                               n_jobs=4, verbose=1)
     
     reg_fs_grid.fit(X_train, y_train) # Training the model with the grid search
     y_val_pred_fs = reg_fs_grid.predict(X_val) # Making predictions on the validation set
