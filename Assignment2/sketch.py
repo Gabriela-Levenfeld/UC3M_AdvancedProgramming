@@ -295,7 +295,7 @@ if __name__ == "__main__":
     # Set the global configuration to keep DataFrame structure in transformers' output
     set_config(display='diagram', transform_output='pandas')
     
-    # Create the pipeline for defing the method KNN
+    # Create the pipeline for defining the method KNN
     # best_scaler; param getting for the bayesian-search
     selector = SelectKBest()
     knn_fs = KNeighborsRegressor(n_neighbors=best_params_bo['n_neighbors'])
@@ -307,7 +307,7 @@ if __name__ == "__main__":
         ])
     
     # Defining hyper-parameter space
-    param_grid_fs = {'select__k': list(range(4, 30, 1)),
+    param_grid_fs = {'select__k': list(range(4, 40, 1)),
                      'select__score_func': [f_regression, mutual_info_regression]}
     
     reg_fs_grid = RandomizedSearchCV(reg_knn_fs,
