@@ -38,8 +38,6 @@ import time
 from utils import load_data, split_data, eval_metrics_model, plot_predictions
 from knn_bayesian_search import param_search_bo, write_trials_to_csv
 
-set_config(display='diagram', transform_output='pandas')
-
 
 
 if __name__ == "__main__":
@@ -245,15 +243,16 @@ if __name__ == "__main__":
     #----------------------------------------------------------
     # Question 6. Only with the Best method
     
-    # a -> Estimation of the error at the competition
-    
-    # b -> Final model
     # Look for the best model
     df = pd.read_csv('results/models_summary.csv')
     best_model = df.loc[df['Validation MAE'].idxmin()]
     print(f'The best model is {best_model["Model"]} with {best_model["Search"]}.')
-    
     # The best model is KNN with Bayesian-search
+    
+    # a -> Estimation of the error at the competition
+    print(f'The estimation of the error that the model might get at the competition is: {best_mae_bo}')
+    
+    # b -> Final model
     # best_params_bo has already been defined and it carries out the parameters of the HPO with bayesian search
     scalers = best_params_bo['scalers']
     if scalers == "minmax":
@@ -293,60 +292,51 @@ if __name__ == "__main__":
     #----------------------------------------------------------
     # Question 7. Feature selection for KNN
     
-    imputer = SimpleImputer(strategy='mean')
+    # Set the global configuration to keep DataFrame structure in transformers' output
+    set_config(display='diagram', transform_output='pandas')
+    
+    # Create the pipeline for defing the method KNN
+    # best_scaler; param getting for the bayesian-search
     selector = SelectKBest()
-    knn = KNeighborsRegressor(n_neighbors=16) #the best parameter for this is 16 according to hpo
- 
-    # Defining the method (KNN) with pipeline
+    knn_fs = KNeighborsRegressor(n_neighbors=best_params_bo['n_neighbors'])
     reg_knn_fs = Pipeline([
-        ('imputation', imputer),
-        ('standarization', StandardScaler()),
-        ('knn', knn),
-        ('select', selector)
-    ])
+        ('imputation', imputer_knn),
+        ('standarization', best_scaler),
+        ('select', selector),
+        ('knn', knn_fs)
+        ])
+    
+    # Defining hyper-parameter space
+    param_grid_fs = {'select__k': list(range(4, 30, 1)),
+                     'select__score_func': [f_regression, mutual_info_regression]}
+    
+    reg_fs_grid = RandomizedSearchCV(reg_knn_fs,
+                                     param_distributions=param_grid_fs,
+                                     n_iter=20,
+                                     scoring='neg_mean_absolute_error',
+                                     cv=tr_val_partition,
+                                     n_jobs=4, verbose=1)
+    
+    reg_fs_grid.fit(X_train, y_train) # Training the model with the grid search
+    y_val_pred_fs = reg_fs_grid.predict(X_val) # Making predictions on the validation set
+    metrics_fs = eval_metrics_model(y_val, y_val_pred_fs) # Evaluate the model
+    
+    # Get the best score
+    best_score_fs = reg_fs_grid.best_score_
+    best_params_fs = reg_fs_grid.best_params_
+    print(f'Best score (negative mean absolute error): {best_score_fs}')
+    print(f'Best params: {best_params_fs}')
 
-    # Defining the Search space
-    param_grid = {'select__k': list(np.random.randint(2, 16, 2)), 
-                  'select__score_func': [f_regression, mutual_info_regression]}
-    
-    # Defining a fixed train/validation grid search
-    # -1 means training, 0 means validation
-    validation_indices = np.zeros(X_train.shape[0]) 
-    validation_indices[:round(2/3*X_train.shape[0])] = -1
-    tr_val_partition = PredefinedSplit (validation_indices)
-        
-    
-    fs_grid = RandomizedSearchCV(reg_knn_fs,
-                               param_grid,
-                               n_iter=10,
-                               scoring='neg_mean_absolute_error',
-                               cv=tr_val_partition,
-                               n_jobs=1, verbose=1)
-    fs_grid = fs_grid.fit(X_train , y_train)
-    
-    y_val_pred_fs=fs_grid.predict(X_val)
-    
-    #Get the selected feature names
-    feature_names_after_impute= wind_ava.feature_names
-    selected_feature_names= (fs_grid.best_estimator_.named_steps['select'],
-                             get_feature_names_out(input_features=feature_names_after_impute))
-                             
-    
-    #Get the best score
-    best_score = fs_grid.best_score_
-    best_params = fs_grid.best_params_
-    feature_scores = fs_grid.best_estimator_.named_steps['select'].scores_
-    print("Best score (negative mean error):", best_score)
-    print("Best params:", best_params)
-    print("Selected features and scores")
+    # Get the selected feature scores and names
+    selected_feature_mask = reg_fs_grid.best_estimator_.named_steps['select'].get_support()
+    feature_scores = reg_fs_grid.best_estimator_.named_steps['select'].scores_[selected_feature_mask]
+    selected_feature_names = X_train.columns[selected_feature_mask]
+    print("Selected features and scores:")
     for elem in zip(selected_feature_names, feature_scores):
         print(elem)
-
-    
-    
-    
-    
-    
-    
-    
-    
+        
+    # Sort the selected features based on scores
+    sorted_features = sorted(zip(selected_feature_names, feature_scores), key=lambda x: x[1], reverse=True)
+    print("Selected features and scores sorted")
+    for elem in sorted_features:
+        print(elem)
