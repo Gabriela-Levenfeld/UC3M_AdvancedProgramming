@@ -27,7 +27,7 @@ wind_ava = load_data('data/wind_available.csv.gzip') # Read train data
 # Question 2: SIMPLIFIED EDA
 
 # How many features and instances are?
-wind_ava.shape # Tamaño del dataset: (4748, 555)
+wind_ava.shape # Dataset size: (4748, 555)
 wind_ava.info() # The goal is to get a quick and general summary
                 # 551 float variables, 4 int variables 
 
@@ -35,15 +35,14 @@ print('Number of features:', wind_ava.columns.size)
 print('Number of instances:', len(wind_ava.iloc[:,0]))
 
 # Different function that maybe useful if we had less observations
-# Quitarlo?
 wind_ava.head()
 wind_ava.columns
 wind_ava.dtypes
-#.head(); vemos que tenemos [5 rows x 555 columns], no todos los datos aparecen porque hay demasiados.
-#columns; la idea es ver qué features tenemos, pero como hay 555 no aparecen todas.
+#.head(); we can observed that we have [5 rows x 555 columns]
+#columns; the idea is to get the name features, however because of the big dataset we can read all of them.
 
 
-# Which vars are categorical/numeric? -> Parece que todas son numéricas
+# Which vars are categorical/numeric? -> It looks like all attributes are numeric
 numeric_vars = wind_ava.select_dtypes(include=[np.number])
 numeric_vars.columns
 
@@ -59,16 +58,15 @@ for column in wind_ava.columns:
 
 # Check for constant columns
 columnas_constantes = wind_ava.columns[wind_ava.nunique() == 1]
-
 # Show constant columns (if there are)
 if len(columnas_constantes) > 0:
     print(f"Columnas constantes encontradas: {', '.join(columnas_constantes)}")
 else:
     print("No se encontraron columnas constantes.")
+    
+# There are no constant columns
 
-#no hay columnas constantes
-
-# Identificamos el número de missing values en cada columna
+# Identify the number of missing values on each column
 wind_ava.isnull().sum()
 
 # Total NA on the dataset: 326132
