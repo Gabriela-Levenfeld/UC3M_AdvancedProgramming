@@ -1,8 +1,8 @@
 Model,Search,Standarization,Best Hyperparameters,Validation MAE,Validation R2,Validation RMSE,Execution time of training process
-KNN,None,standard,Default,311.9185320304017,0.5731130919468399,435.63811585071244,18.377074003219604
-KNN,None,robust,Default,324.5408230184582,0.5387178858877225,452.8483199146056,19.65749740600586
-KNN,None,MinMax,Default,334.3164625407166,0.5115156990176499,466.009487408592,19.619574308395386
-Tree,None,None,Default,386.6283821932682,0.36605971442330476,530.8766559343794,5.301138162612915
-KNN,Random-search,standard,"{'knn__leaf_size': 25, 'knn__n_neighbors': 15, 'knn__weights': 'distance'}",308.4349833422852,0.592795994726474,425.47639771165467,118.80751943588257
-Tree,Random-search,None,"{'tree__max_depth': 9, 'tree__min_samples_leaf': 15, 'tree__min_samples_split': 10}",333.43699253486744,0.5131623548597402,465.2233771730783,15.236520767211914
-KNN,Bayesian-search,standard,"{'n_neighbors': 12, 'weights': 'distance', 'algorithm': 'kd_tree', 'leaf_size': 20}",303.6269909332641,NaN,NaN,47.354302
+KNN,None,standard,Default,305.66732681867535,0.5862577336079433,428.87862083807534,34.498440980911255
+KNN,None,robust,Default,324.03556786102064,0.5384881402136574,452.9610784500495,34.932148694992065
+KNN,None,MinMax,Default,326.7740499457112,0.5402111963355771,452.11472186738706,37.75327205657959
+Tree,None,None,Default,397.63613463626496,0.34154245146124484,541.0449446448354,6.792101621627808
+KNN,Random-search,standard,"{'knn__weights': 'distance', 'knn__n_neighbors': 11, 'knn__leaf_size': 1}",304.86077491434804,0.6000236870357591,421.6834820842301,206.03701543807983
+Tree,Random-search,None,"{'tree__min_samples_split': 24, 'tree__min_samples_leaf': 26, 'tree__max_depth': 10}",332.9156307824368,0.5254133919744067,459.33251869561326,15.524529695510864
+KNN,Bayesian-search,standard,"{'n_neighbors': 11, 'weights': 'distance', 'algorithm': 'kd_tree', 'leaf_size': 37}",304.86077491434804,NaN,NaN,44.531232

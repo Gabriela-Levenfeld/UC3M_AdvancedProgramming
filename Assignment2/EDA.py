@@ -127,3 +127,12 @@ plt.xlabel('Time')
 plt.ylabel('Energy Production')
 plt.xticks(rotation=45)
 plt.show()
+
+
+# For competition data
+wind_comp = load_data('data/wind_competition.csv.gzip')
+cte_columns_test = wind_comp.columns[wind_comp.nunique() == 1]
+if len(columnas_constantes) > 0:
+    print(f"Constant columns found: {', '.join(cte_columns_test)}")
+else:
+    print("There are no constant columns.")

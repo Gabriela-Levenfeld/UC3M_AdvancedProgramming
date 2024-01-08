@@ -33,6 +33,9 @@ def split_data(data, years_train_train):
     train_val = data[~data['year'].isin(years_train_train)]
     X_val = train_val.drop(columns='energy')
     y_val = train_val['energy'].values
+    
+    X_train = X_train.drop(['year'], axis=1)
+    X_val = X_val.drop(['year'], axis=1)
 
     return X_train, y_train, X_val, y_val
 

@@ -15,7 +15,6 @@ import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer, KNNImputer
 from sklearn.preprocessing import StandardScaler, RobustScaler, MinMaxScaler
-from scipy.stats import randint as sp_randint
 
 # Models and metrics
 # ===================
@@ -59,7 +58,7 @@ if __name__ == "__main__":
     X_train, y_train, X_val, y_val = split_data(wind_ava, years_train_train)
     
     # The data we will use to train the final model:
-    X = wind_ava.drop(columns='energy')
+    X = wind_ava.drop(columns=['energy', 'year'])
     y = wind_ava['energy'].values    
     
     #----------------------------------------------------------
@@ -94,17 +93,26 @@ if __name__ == "__main__":
         ])
     
     # Fit and evaluate KNN with Standard Scaler
+    start_time = time.time()
     reg_knn_std.fit(X_train, y_train)
+    end_time = time.time()
+    ex_time_reg_knn_std = end_time - start_time
     y_val_pred_std = reg_knn_std.predict(X_val)  
     metrics_knn_std = eval_metrics_model(y_val, y_val_pred_std)
     
     # Fit and evaluate KNN with Robust Scaler
+    start_time = time.time()
     reg_knn_robust.fit(X_train, y_train)
+    end_time = time.time()
+    ex_time_reg_knn_robust = end_time - start_time
     y_val_pred_robust = reg_knn_robust.predict(X_val)    
     metrics_knn_robust = eval_metrics_model(y_val, y_val_pred_robust)  
     
     # Fit and evaluate KNN with MinMax Scaler
+    start_time = time.time()
     reg_knn_minmax.fit(X_train, y_train)
+    end_time = time.time()
+    ex_time_reg_knn_minmax = end_time - start_time
     y_val_pred_minmax = reg_knn_minmax.predict(X_val)  
     metrics_knn_minmax = eval_metrics_model(y_val, y_val_pred_minmax)
     
@@ -125,7 +133,10 @@ if __name__ == "__main__":
         ('tree', tree_model)
         ])
     
+    start_time = time.time()
     reg_tree.fit(X_train, y_train) # Now, we train (fit) the method on the train dataset
+    end_time = time.time()
+    ex_time_reg_tree = end_time - start_time    
     y_val_pred_tree = reg_tree.predict(X_val) # We use the model to predict on the validate set 
     metrics_tree = eval_metrics_model(y_val, y_val_pred_tree) # Evaluate the model
     
@@ -151,9 +162,9 @@ if __name__ == "__main__":
         ])
     
     # Defining the Search space
-    param_grid_knn = {'knn__n_neighbors': sp_randint(2,16,2),
+    param_grid_knn = {'knn__n_neighbors': list(range(1,30,2)),
                       'knn__weights': ['uniform', 'distance'],
-                      'knn__leaf_size': sp_randint(10,50,2)}
+                      'knn__leaf_size': list(range(1,50,5))}
     
     reg_knn_grid = RandomizedSearchCV(reg_knn_hpo,
                                 param_distributions=param_grid_knn,
@@ -162,7 +173,10 @@ if __name__ == "__main__":
                                 cv=tr_val_partition,
                                 n_jobs=4, verbose=1)
     
+    start_time = time.time()
     reg_knn_grid.fit(X_train, y_train) # Training the model with the grid search
+    end_time = time.time()
+    ex_time_reg_knn_grid = end_time - start_time 
     y_val_pred_hpo_knn = reg_knn_grid.predict(X_val) # Making predictions on the validate set
     metrics_hpo_knn = eval_metrics_model(y_val, y_val_pred_hpo_knn) # Evaluate the model
     
@@ -181,9 +195,9 @@ if __name__ == "__main__":
         ])
     
     # Defining the Search space
-    param_grid_tree = {'tree__max_depth': sp_randint(2,16,2),
-                       'tree__min_samples_split': sp_randint(2,34),
-                       'tree__min_samples_leaf': sp_randint(1,30,5)}
+    param_grid_tree = {'tree__max_depth': list(range(2,16,2)),
+                       'tree__min_samples_split': list(range(2,34,2)),
+                       'tree__min_samples_leaf': list(range(1,30,5))}
     
     reg_tree_grid = RandomizedSearchCV(reg_tree_hpo,
                                        param_distributions=param_grid_tree,
@@ -192,7 +206,10 @@ if __name__ == "__main__":
                                        cv=tr_val_partition,
                                        n_jobs=3, verbose=1)
 
+    start_time = time.time()
     reg_tree_grid.fit(X_train, y_train) # Training the model with the grid search
+    end_time = time.time()
+    ex_time_reg_tree_grid = end_time - start_time 
     y_val_pred_hpo_tree = reg_tree_grid.predict(X_val) # Making predictions on the validate set 
     metrics_hpo_tree = eval_metrics_model(y_val, y_val_pred_hpo_tree) # Evaluate the model
     
@@ -211,7 +228,7 @@ if __name__ == "__main__":
                                     storage = 'sqlite:///KNNPredictBO.db',
                                     load_if_exists=True)
     # Bayesian search
-    n_trials=60
+    n_trials=70
     best_params_bo = param_search_bo((X_train, y_train), (X_val, y_val), study_knn, n_trials)
     best_mae_bo = study_knn.best_value
     print(f'Best hyper-parameters: {study_knn.best_params}')
@@ -233,7 +250,8 @@ if __name__ == "__main__":
         'Best Hyperparameters': ['Default', 'Default', 'Default', 'Default', reg_knn_grid.best_params_, reg_tree_grid.best_params_, name_bo_params],
         'Validation MAE': [metrics_knn_std['MAE'], metrics_knn_robust['MAE'], metrics_knn_minmax['MAE'], metrics_tree['MAE'], metrics_hpo_knn['MAE'], metrics_hpo_tree['MAE'], best_mae_bo],
         'Validation R2': [metrics_knn_std['R^2'], metrics_knn_robust['R^2'], metrics_knn_minmax['R^2'], metrics_tree['R^2'], metrics_hpo_knn['R^2'], metrics_hpo_tree['R^2'], 'NaN'],
-        'Validation RMSE': [metrics_knn_std['RMSE'], metrics_knn_robust['RMSE'], metrics_knn_minmax['RMSE'], metrics_tree['RMSE'], metrics_hpo_knn['RMSE'], metrics_hpo_tree['RMSE'], 'NaN']
+        'Validation RMSE': [metrics_knn_std['RMSE'], metrics_knn_robust['RMSE'], metrics_knn_minmax['RMSE'], metrics_tree['RMSE'], metrics_hpo_knn['RMSE'], metrics_hpo_tree['RMSE'], 'NaN'],
+        'Execution time of training process': [ex_time_reg_knn_std, ex_time_reg_knn_robust, ex_time_reg_knn_minmax, ex_time_reg_tree, ex_time_reg_knn_grid, ex_time_reg_tree_grid, 44.531232]
     })
     summary_df = pd.DataFrame(summary_models)
     summary_csv_path = 'results/models_summary.csv'
@@ -280,6 +298,7 @@ if __name__ == "__main__":
 
     # Now, we can use the final_model to make predictions on new data
     wind_comp = load_data('data/wind_competition.csv.gzip') # Load new data
+    wind_comp = wind_comp.drop('year')
     pred_new = final_model.predict(wind_comp)
     
     wind_comp['Predictions'] = pred_new
